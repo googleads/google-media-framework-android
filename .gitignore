@@ -1,0 +1,8 @@
+.gradle/
+.idea/
+build/
+demo/build/
+*.iml
+gmf-android.iml
+googlemediaframework/build/
+local.properties
