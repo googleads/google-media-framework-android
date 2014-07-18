@@ -6,16 +6,15 @@ The Google Media Framework (GMF) is a lightweight media player designed to make 
 The framework is currently in beta, allowing interested developers to try it out and send feedback before we finalize the APIs and features.
 
 ##Features
-- A customizable video player UI for video playback on Android.
-    - Logo and branding colors.
-    - Action buttons within video UI for other actions (ex. share, .
-    - Subtitle support.
-- Easily integrate the Google IMA SDK to enable advertising on your video content.
-- Built on top of [ExoPlayer](https://github.com/google/ExoPlayer).
-    - Plays DASH and mp4, and easily extended to other video formats.
+- A customizable video player UI for video playback on Android
+    - Logo and branding colors
+    - Action buttons within video UI for other actions (ex. share or download)
+    - Subtitle support
+- Easily integrate the Google IMA SDK to enable advertising on your video content
+- Built on top of [ExoPlayer](https://github.com/google/ExoPlayer)
+    - Plays [MPEG DASH](http://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP) and mp4, and easily extended to other video formats
 
 ##Getting started
-
 Clone the repository
 
 ```git clone https://github.com/googleads/google-media-framework-android.git GoogleMediaFramework```
@@ -24,9 +23,7 @@ Then navigate to the directory and set up the ExoPlayer submodule.
 
 ```
 cd GoogleMediaFramework
-
 git submodule init
-
 git submodule update
 ```
 
