@@ -21,18 +21,15 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
-import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -400,6 +397,9 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
       fullscreenCallback.onReturnFromFullscreen();
       activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+      // Make the status bar and navigation bar visible again.
+      activity.getWindow().getDecorView().setSystemUiVisibility(0);
+
       activity.getActionBar().show();
 
       container.setLayoutParams(originalContainerLayoutParams);
@@ -411,18 +411,34 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
       fullscreenCallback.onGoToFullscreen();
       activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-      activity.getWindow().setFlags(
-          WindowManager.LayoutParams.FLAG_FULLSCREEN,
-          WindowManager.LayoutParams.FLAG_FULLSCREEN
+      activity.getWindow().getDecorView().setSystemUiVisibility(
+          View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+          View.SYSTEM_UI_FLAG_FULLSCREEN
+      );
+
+      // Whenever the status bar and navigation bar appear, we want the playback controls to
+      // appear as well.
+      activity.getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(
+          new View.OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(int i) {
+              // By doing a logical AND, we check if the fullscreen option is triggered (i.e. the
+              // status bar is hidden). If the result of the logical AND is 0, that means that the
+              // fullscreen flag is NOT triggered. This means that the status bar is showing. If
+              // this is the case, then we show the playback controls as well (by calling show()).
+              if ((i & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
+                show();
+              }
+            }
+          }
       );
 
       activity.getActionBar().hide();
 
-      Point outsize = new Point();
-      Display defaultDisplay = activity.getWindowManager().getDefaultDisplay();
-      defaultDisplay.getSize(outsize);
-
-      container.setLayoutParams(getLayoutParamsBasedOnParent(container, outsize.x, outsize.y));
+      container.setLayoutParams(getLayoutParamsBasedOnParent(container,
+          ViewGroup.LayoutParams.MATCH_PARENT,
+          ViewGroup.LayoutParams.MATCH_PARENT
+      ));
 
       fullscreenButton.setImageResource(R.drawable.ic_action_return_from_full_screen);
 
@@ -483,6 +499,15 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
     if (areControlsVisible) {
       container.removeView(view);
+
+      // Make sure that the status bar and navigation bar are hidden when the playback controls
+      // are hidden.
+      if (isFullscreen) {
+        getLayerManager().getActivity().getWindow().getDecorView().setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+            View.SYSTEM_UI_FLAG_FULLSCREEN
+        );
+      }
       handler.removeMessages(SHOW_PROGRESS);
       areControlsVisible = false;
     }
