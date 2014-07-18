@@ -118,13 +118,17 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
     Drawable logo = res.getDrawable(R.drawable.ic_launcher);
     videoPlayer.setLogoImage(logo);
 
-    // Set the color of the player's top bar, bottom bar, and background to be a blue color.
-    int sampleChromeColor = res.getColor(R.color.sample_chrome_color);
-    videoPlayer.setChromeColor(sampleChromeColor);
+    // Uncomment the following lines to set the color of the player's top bar, bottom bar, and
+    // background to be a blue color.
 
-    // Set the color of the buttons and seekbar in the player to be a green color.
-    int samplePlaybackControlColor = res.getColor(R.color.sample_playback_control_color);
-    videoPlayer.setPlaybackControlColor(samplePlaybackControlColor);
+    // int sampleChromeColor = res.getColor(R.color.sample_chrome_color);
+    // videoPlayer.setChromeColor(sampleChromeColor);
+
+    // Uncomment the following lines to set the color of the buttons and seekbar in the player
+    // to be a green color.
+
+    // int samplePlaybackControlColor = res.getColor(R.color.sample_playback_control_color);
+    // videoPlayer.setPlaybackControlColor(samplePlaybackControlColor);
 
     // Add three buttons to the video player's set of action buttons.
     //
