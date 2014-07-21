@@ -1,5 +1,7 @@
 #Google Media Framework for Android
 
+[![Build Status](https://travis-ci.org/googleads/google-media-framework-android.svg?branch=master)](https://travis-ci.org/googleads/google-media-framework-android)
+
 ##Introduction
 The Google Media Framework (GMF) is a lightweight media player designed to make video playback and integration with the Google IMA SDK on Android easier.
 
