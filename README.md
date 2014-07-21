@@ -36,7 +36,7 @@ Please report issues on the [issues page](../../issues).
 If you have questions about the framework, you can ask them in our [google group](http://groups.google.com/d/forum/google-media-framework).
 
 ##How do I contribute?
-See [this wiki article](../../wiki/Becoming-a-contributor) for details.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ##Requirements
 
@@ -46,7 +46,7 @@ See [this wiki article](../../wiki/Becoming-a-contributor) for details.
 ###Development
   - Gradle (1.12 or above)
   - Android Studio (0.8 or above)
-    - Build tools version 19.1 (installed via SDK manager)
+    - Build tools version 19.1.0 (installed via SDK manager)
     - Google Play Services version 4.3.23 or higher (installed via SDK manager)
     - Google Repository (installed via SDK manager)
   - ExoPlayer (added as a git submodule)
