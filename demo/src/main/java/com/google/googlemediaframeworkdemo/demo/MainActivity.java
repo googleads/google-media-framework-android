@@ -44,6 +44,9 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
 
     View view = getLayoutInflater().inflate(R.layout.activity_main, null);
 
+    // Get rid of the action bar.
+    getActionBar().hide();
+
     // This container will be the video player.
     videoPlayerContainer = (FrameLayout) view.findViewById(R.id.video_frame);
 
@@ -115,7 +118,7 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
     // Customize the UI of the video player.
 
     // Set a logo (an Android icon will be displayed in the top left)
-    Drawable logo = res.getDrawable(R.drawable.ic_launcher);
+    Drawable logo = res.getDrawable(R.drawable.gmf_icon);
     videoPlayer.setLogoImage(logo);
 
     // Uncomment the following lines to set the color of the player's top bar, bottom bar, and

@@ -400,8 +400,6 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
       // Make the status bar and navigation bar visible again.
       activity.getWindow().getDecorView().setSystemUiVisibility(0);
 
-      activity.getActionBar().show();
-
       container.setLayoutParams(originalContainerLayoutParams);
 
       fullscreenButton.setImageResource(R.drawable.ic_action_full_screen);
@@ -432,8 +430,6 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
             }
           }
       );
-
-      activity.getActionBar().hide();
 
       container.setLayoutParams(getLayoutParamsBasedOnParent(container,
           ViewGroup.LayoutParams.MATCH_PARENT,
