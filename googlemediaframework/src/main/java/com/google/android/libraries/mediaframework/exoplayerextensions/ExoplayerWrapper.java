@@ -174,9 +174,15 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    */
   public static final int TYPE_DEBUG = 3;
 
+  /**
+   * These variables must be ints (instead of enums) because their values have significance in the
+   * ExoPlayer libary.
+   */
   private static final int RENDERER_BUILDING_STATE_IDLE = 1;
   private static final int RENDERER_BUILDING_STATE_BUILDING = 2;
   private static final int RENDERER_BUILDING_STATE_BUILT = 3;
+  public static final int DISABLED_TRACK = -1;
+  public static final int PRIMARY_TRACK = 0;
 
   private final RendererBuilder rendererBuilder;
   private final ExoPlayer player;
@@ -239,7 +245,7 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   /**
    * The state of a track at a given index (one of the TYPE_* constants).
    */
-  private TrackState[] trackStateForType;
+  private int[] trackStateForType;
 
   /**
    * Respond to text (i.e. subtitle or closed captioning) events.
@@ -257,9 +263,9 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     playbackListeners = new CopyOnWriteArrayList<PlaybackListener>();
     lastReportedPlaybackState = ExoPlayer.STATE_IDLE;
     rendererBuildingState = RENDERER_BUILDING_STATE_IDLE;
-    trackStateForType = new TrackState[RENDERER_COUNT];
+    trackStateForType = new int[RENDERER_COUNT];
     // Disable text initially.
-    trackStateForType[TYPE_TEXT] = TrackState.DISABLED;
+    trackStateForType[TYPE_TEXT] = DISABLED_TRACK;
   }
 
   public ObservablePlayerControl getPlayerControl() {
@@ -326,11 +332,11 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     return trackNames == null ? null : trackNames[type];
   }
 
-  public TrackState getStateForTrackType(int type) {
+  public int getStateForTrackType(int type) {
     return trackStateForType[type];
   }
 
-  public void selectTrack(int type, TrackState state) {
+  public void selectTrack(int type, int state) {
     if (trackStateForType[type] == state) {
       return;
     }
@@ -644,8 +650,8 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
       return;
     }
 
-    TrackState trackState = trackStateForType[type];
-    if (trackState == TrackState.DISABLED) {
+    int trackState = trackStateForType[type];
+    if (trackState == DISABLED_TRACK) {
       player.setRendererEnabled(type, false);
     } else if (multiTrackSources[type] == null) {
       player.setRendererEnabled(type, allowRendererEnable);
