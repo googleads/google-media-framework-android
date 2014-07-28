@@ -17,6 +17,7 @@
 package com.google.googlemediaframeworkdemo.demo.adplayer;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.net.Uri;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -37,11 +38,9 @@ import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
-import com.google.android.libraries.mediaframework.layeredvideo.Layer;
-import com.google.android.libraries.mediaframework.layeredvideo.LayerManager;
 import com.google.android.libraries.mediaframework.layeredvideo.PlaybackControlLayer;
 import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlayer;
-import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceLayer;
+import com.google.android.libraries.mediaframework.layeredvideo.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,17 +70,12 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
   /**
    * Plays the ad.
    */
-  private LayerManager adPlayer;
+  private SimpleVideoPlayer adPlayer;
 
   /**
    * The layout that contains the ad player.
    */
   private FrameLayout adPlayerContainer;
-
-  /**
-   * Renders the advertisement.
-   */
-  private VideoSurfaceLayer adSurfaceLayer;
 
   /**
    * Used by the IMA SDK to overlay controls (i.e. skip ad) over the ad player.
@@ -108,6 +102,8 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
    */
   private SimpleVideoPlayer contentPlayer;
 
+  private PlaybackControlLayer.FullscreenCallback fullscreenCallback;
+
   /**
    * Last recorded progress in ad playback. Occasionally the ad pauses when it needs to buffer (and
    * progress stops), so it must be resumed. We detect this situation by noting if the difference
@@ -115,6 +111,12 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
    * video and replay it. This causes the ad to continue playback again.
    */
   private VideoProgressUpdate oldVpu;
+
+  /**
+   * This is the layout of the container before fullscreen mode has been entered.
+   * When we leave fullscreen mode, we restore the layout of the container to this layout.
+   */
+  private ViewGroup.LayoutParams originalContainerLayoutParams;
 
   private final ExoplayerWrapper.PlaybackListener playbackListener
       = new ExoplayerWrapper.PlaybackListener() {
@@ -142,12 +144,12 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
     @Override
     public void playAd() {
       hideContentPlayer();
-      createAdPlayer();
     }
 
     @Override
     public void loadAd(String mediaUri) {
       adTagUrl = Uri.parse(mediaUri);
+      createAdPlayer();
     }
 
     @Override
@@ -159,14 +161,14 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
     @Override
     public void pauseAd() {
       if (adPlayer != null){
-        adPlayer.getControl().pause();
+        adPlayer.pause();
       }
     }
 
     @Override
     public void resumeAd() {
       if(adPlayer != null) {
-        adPlayer.getControl().start();
+        adPlayer.play();
       }
     }
 
@@ -198,8 +200,8 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
         vpu = VideoProgressUpdate.VIDEO_TIME_NOT_READY;
       } else if (adPlayer != null) {
         // If an ad is playing, report the progress of the ad player.
-        vpu = new VideoProgressUpdate(adPlayer.getControl().getCurrentPosition(),
-            adPlayer.getControl().getDuration());
+        vpu = new VideoProgressUpdate(adPlayer.getCurrentPosition(),
+            adPlayer.getDuration());
       } else {
         // If the cotntent is playing, report the progress of the content player.
         vpu = new VideoProgressUpdate(contentPlayer.getCurrentPosition(),
@@ -213,9 +215,9 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
           && vpu.getCurrentTime() == oldVpu.getCurrentTime()) {
         // TODO(hsubrama): Find better method for detecting ad pause and resuming ad playback.
         // Resume the ad player if it has paused due to buffering.
-        if (adPlayer != null) {
-          adPlayer.getControl().pause();
-          adPlayer.getControl().start();
+        if (adPlayer != null && adPlayer.shouldBePlaying()) {
+          adPlayer.pause();
+          adPlayer.play();
         }
       }
 
@@ -249,8 +251,7 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
         container,
         video,
         videoTitle,
-        autoplay,
-        fullscreenCallback);
+        autoplay);
 
     // Move the content player's surface layer to the background so that the ad player's surface
     // layer can be overlaid on top of it during ad playback.
@@ -258,10 +259,16 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
 
     // Create the ad adDisplayContainer UI which will be used by the IMA SDK to overlay ad controls.
     adUiContainer = new FrameLayout(activity);
-    adUiContainer.setLayoutParams(new FrameLayout.LayoutParams(
+    container.addView(adUiContainer);
+    adUiContainer.setLayoutParams(Util.getLayoutParamsBasedOnParent(
+        adUiContainer,
         ViewGroup.LayoutParams.MATCH_PARENT,
         ViewGroup.LayoutParams.MATCH_PARENT));
-    container.addView(adUiContainer);
+
+
+    this.originalContainerLayoutParams = container.getLayoutParams();
+
+    setFullscreenCallback(fullscreenCallback);
   }
 
   public ImaPlayer(Activity activity,
@@ -302,27 +309,36 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
 
     // Add the ad frame layout to the adDisplayContainer that contains all the content player.
     adPlayerContainer = new FrameLayout(activity);
-    adPlayerContainer.setLayoutParams(new FrameLayout.LayoutParams(
+    container.addView(adPlayerContainer);
+    adPlayerContainer.setLayoutParams(Util.getLayoutParamsBasedOnParent(
+        adPlayerContainer,
         ViewGroup.LayoutParams.MATCH_PARENT,
         ViewGroup.LayoutParams.MATCH_PARENT
     ));
-    container.addView(adPlayerContainer);
 
     // Ensure tha the ad ui adDisplayContainer is the topmost view.
     container.removeView(adUiContainer);
     container.addView(adUiContainer);
 
-    ArrayList<Layer> adLayer = new ArrayList<Layer>();
-    adSurfaceLayer = new VideoSurfaceLayer(false);
-    adLayer.add(adSurfaceLayer);
+
     Video adVideo = new Video(adTagUrl.toString(), Video.VideoType.OTHER);
-    adPlayer = new LayerManager(activity, adPlayerContainer, adVideo, adLayer);
-    adPlayer.getExoplayerWrapper().addListener(playbackListener);
+    adPlayer = new SimpleVideoPlayer(activity,
+        adPlayerContainer,
+        adVideo,
+        "",
+        true,
+        fullscreenCallback);
+
+    adPlayer.addPlaybackListener(playbackListener);
 
     // Move the ad player's surface layer to the foreground so that it is overlaid on the content
     // player's surface layer (which is in the background).
-    adSurfaceLayer.moveSurfaceToForeground();
-    adPlayer.getControl().start();
+    adPlayer.moveSurfaceToForeground();
+    adPlayer.play();
+    adPlayer.disableSeeking();
+    adPlayer.setSeekbarColor(Color.YELLOW);
+    adPlayer.hideTopChrome();
+    adPlayer.setFullscreen(contentPlayer.isFullscreen());
 
     // Notify the callbacks that the ad has begun playing.
     for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
@@ -345,10 +361,12 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
       container.removeView(adUiContainer);
     }
     if(adPlayer != null){
-      adPlayer.getExoplayerWrapper().release();
+      contentPlayer.setFullscreen(adPlayer.isFullscreen());
+      adPlayer.release();
     }
     adPlayerContainer = null;
     adPlayer = null;
+    setFullscreenCallback(fullscreenCallback);
   }
 
   public FrameLayout getUiContainer(){
@@ -423,8 +441,31 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
     }
   }
 
-  public void setFullscreenCallback(PlaybackControlLayer.FullscreenCallback fullscreenCallback) {
-    getContentPlayer().setFullscreenCallback(fullscreenCallback);
+  public void setFullscreenCallback(
+      final PlaybackControlLayer.FullscreenCallback fullscreenCallback) {
+    this.fullscreenCallback = new PlaybackControlLayer.FullscreenCallback() {
+      @Override
+      public void onGoToFullscreen() {
+        fullscreenCallback.onGoToFullscreen();
+        container.setLayoutParams(Util.getLayoutParamsBasedOnParent(
+            container,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ));
+      }
+
+      @Override
+      public void onReturnFromFullscreen() {
+        fullscreenCallback.onReturnFromFullscreen();
+        container.setLayoutParams(originalContainerLayoutParams);
+      }
+    };
+
+    if (adPlayer != null) {
+      adPlayer.setFullscreenCallback(fullscreenCallback);
+    } else {
+      contentPlayer.setFullscreenCallback(fullscreenCallback);
+    }
   }
 
   public void showContentPlayer(){
@@ -437,8 +478,8 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
   }
 
   public void release() {
-    if (adSurfaceLayer != null) {
-      adSurfaceLayer.release();
+    if (adPlayer != null) {
+      adPlayer.release();
     }
     contentPlayer.release();
   }

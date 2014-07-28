@@ -21,6 +21,7 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 
 import java.util.ArrayList;
@@ -107,6 +108,18 @@ public class SimpleVideoPlayer {
     playbackControlLayer.addActionButton(activity, icon, contentDescription, onClickListener);
   }
 
+  public void addPlaybackListener(ExoplayerWrapper.PlaybackListener listener) {
+    layerManager.getExoplayerWrapper().addListener(listener);
+  }
+
+  public void disableSeeking() {
+    playbackControlLayer.disableSeeking();
+  }
+
+  public void enableSeeking() {
+    playbackControlLayer.enableSeeking();
+  }
+
   public int getCurrentPosition() {
     return layerManager.getControl().getCurrentPosition();
   }
@@ -118,6 +131,18 @@ public class SimpleVideoPlayer {
   public void hide() {
     playbackControlLayer.setVisibility(View.GONE);
     subtitleLayer.setVisibility(View.GONE);
+  }
+
+  public void hideTopChrome() {
+    playbackControlLayer.hideTopChrome();
+  }
+
+  public boolean isFullscreen() {
+    return playbackControlLayer.isFullscreen();
+  }
+
+  public void setFullscreen(boolean shouldBeFullscreen) {
+    playbackControlLayer.setFullscreen(shouldBeFullscreen);
   }
 
   /**
@@ -170,6 +195,10 @@ public class SimpleVideoPlayer {
     playbackControlLayer.setControlColor(color);
   }
 
+  public void setSeekbarColor(int color) {
+    playbackControlLayer.setSeekbarColor(color);
+  }
+
   public void setTextColor(int color) {
     playbackControlLayer.setTextColor(color);
   }
@@ -178,9 +207,17 @@ public class SimpleVideoPlayer {
     playbackControlLayer.setVideoTitle(title);
   }
 
+  public boolean shouldBePlaying() {
+    return playbackControlLayer.shouldBePlaying();
+  }
+
   public void show() {
     playbackControlLayer.setVisibility(View.VISIBLE);
     subtitleLayer.setVisibility(View.VISIBLE);
+  }
+
+  public void showTopChrome() {
+    playbackControlLayer.showTopChrome();
   }
 
   public void release() {
