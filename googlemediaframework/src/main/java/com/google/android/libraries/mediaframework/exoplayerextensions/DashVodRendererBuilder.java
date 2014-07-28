@@ -188,7 +188,7 @@ public class DashVodRendererBuilder implements ExoplayerWrapper.RendererBuilder,
 
     // Build the video data source.
     DataSource videoDataSource = new HttpDataSource(userAgent,
-        HttpDataSource.REJECT_PAYWALL_TYPES,
+        null,
         bandwidthMeter);
     ChunkSource videoChunkSource;
     String mimeType = videoRepresentations[0].format.mimeType;

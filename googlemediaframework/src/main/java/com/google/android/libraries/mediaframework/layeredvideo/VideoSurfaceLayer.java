@@ -23,7 +23,6 @@ import android.widget.FrameLayout;
 
 import com.google.android.libraries.mediaframework.R;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
-import com.google.android.libraries.mediaframework.exoplayerextensions.TrackState;
 
 /**
  * Creates a view which can render video.
@@ -67,7 +66,7 @@ public class VideoSurfaceLayer implements Layer {
         wrapper.setSurface(surfaceHolder.getSurface());
         if (wrapper.getSurface().isValid() ||
             wrapper.getStateForTrackType(ExoplayerWrapper.TYPE_VIDEO)
-                == TrackState.DISABLED) {
+                == ExoplayerWrapper.DISABLED_TRACK) {
           wrapper.setPlayWhenReady(autoplay);
         }
       }
