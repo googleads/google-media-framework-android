@@ -364,8 +364,6 @@ public class ImaPlayer {
         null);
   }
 
-  // Public methods.
-
   public void pause() {
     if (adPlayer != null) {
       adPlayer.pause();
@@ -418,8 +416,6 @@ public class ImaPlayer {
     }
     contentPlayer.release();
   }
-
-  // Private methods.
 
   private void createAdPlayer(){
     // Kill any existing ad player.

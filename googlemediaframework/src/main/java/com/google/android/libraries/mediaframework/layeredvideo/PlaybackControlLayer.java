@@ -162,11 +162,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
   private boolean areControlsVisible;
 
-  /**
-   * Contains the seek bar, current time, end time, and fullscreen button. The background can
-   * be tinted with a color for branding.
-   */
-  private LinearLayout bottomChrome;
+
 
   /**
    * Whether the user can drag the seek bar thumb to seek.
@@ -187,6 +183,16 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    * play/pause button, fullscreen button, seek bar, and action buttons.
    */
   private int controlColor;
+
+  /**
+   * Derived from the {@link Color} class (ex. {@link Color#RED}).
+   */
+  private int textColor;
+
+  /**
+   * Derived from the {@link Color} class (ex. {@link Color#RED}).
+   */
+  private int seekbarColor;
 
   /**
    * Elapsed time into video.
@@ -232,7 +238,6 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   private ImageView logoImageView;
 
-
   /**
    * These is the layout of the container before fullscreen mode has been entered.
    * When we leave fullscreen mode, we restore the layout of the container to this layout.
@@ -249,11 +254,6 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   private SeekBar seekBar;
 
   /**
-   * Derived from the {@link Color} class (ex. {@link Color#RED}).
-   */
-  private int seekbarColor;
-
-  /**
    * Whether the play button has been pressed and the video should be playing.
    * We include this variable because the video may pause when buffering must occur. Although
    * the video will usually resume automatically when the buffering is complete, there are instances
@@ -261,11 +261,6 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    * paused after buffering and should be playing, we can resume it programmatically.
    */
   private boolean shouldBePlaying;
-
-  /**
-   * Derived from the {@link Color} class (ex. {@link Color#RED}).
-   */
-  private int textColor;
 
   /**
    * Formats times to HH:MM:SS or MM:SS form.
@@ -277,13 +272,19 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   private Formatter timeFormatter;
 
-  private FrameLayout middleSection;
-
   /**
    * Contains the logo, video title, and other actions button. It can be tinted with a color for
    * branding.
    */
   private RelativeLayout topChrome;
+
+  private FrameLayout middleSection;
+
+  /**
+   * Contains the seek bar, current time, end time, and fullscreen button. The background can
+   * be tinted with a color for branding.
+   */
+  private LinearLayout bottomChrome;
 
   /**
    * The title displayed in the {@link PlaybackControlLayer#videoTitleView}.
@@ -505,8 +506,48 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  /**
+   * Add the view back to the container. The playback controls disappear after timeout milliseconds.
+   * @param timeout Hide the view after timeout milliseconds. If timeout == 0, then the playback
+   *                controls will not disappear unless their container is tapped again.
+   */
+  public void show(int timeout) {
+    if (!areControlsVisible && getLayerManager().getContainer() != null) {
+      updateProgress();
+
+      FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT,
+          ViewGroup.LayoutParams.MATCH_PARENT,
+          Gravity.CENTER
+      );
+      getLayerManager().getContainer().removeView(view);
+      getLayerManager().getContainer().addView(view, layoutParams);
+      setupView();
+      areControlsVisible = true;
+    }
+    updatePlayPauseButton();
+
+    handler.sendEmptyMessage(SHOW_PROGRESS);
+
+    Message msg = handler.obtainMessage(FADE_OUT);
+    if (timeout > 0) {
+      handler.removeMessages(FADE_OUT);
+      handler.sendMessageDelayed(msg, timeout);
+    }
+  }
+
+  public void show() {
+    show(DEFAULT_TIMEOUT_MS);
+  }
+
   public void hideTopChrome() {
     topChrome.setVisibility(View.GONE);
+  }
+
+  public void showTopChrome() {
+    topChrome.setVisibility(View.VISIBLE);
+    updateActionButtons();
+    updateColors();
   }
 
   public boolean isFullscreen() {
@@ -552,6 +593,20 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  public void setSeekbarColor(int color) {
+    this.seekbarColor = color;
+    if (middleSection != null) {
+      updateColors();
+    }
+  }
+
+  public void setTextColor(int color) {
+    this.textColor = color;
+    if (middleSection != null) {
+      updateColors();
+    }
+  }
+
   public void setFullscreenCallback(FullscreenCallback fullscreenCallback) {
     this.fullscreenCallback = fullscreenCallback;
     if (fullscreenButton != null && fullscreenCallback != null) {
@@ -581,20 +636,6 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
 
     updatePlayPauseButton();
-  }
-
-  public void setSeekbarColor(int color) {
-    this.seekbarColor = color;
-    if (middleSection != null) {
-      updateColors();
-    }
-  }
-
-  public void setTextColor(int color) {
-    this.textColor = color;
-    if (middleSection != null) {
-      updateColors();
-    }
   }
 
   public void setVideoTitle(String title) {
@@ -695,46 +736,6 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
   public boolean shouldBePlaying() {
     return shouldBePlaying;
-  }
-
-  /**
-   * Add the view back to the container. The playback controls disappear after timeout milliseconds.
-   * @param timeout Hide the view after timeout milliseconds. If timeout == 0, then the playback
-   *                controls will not disappear unless their container is tapped again.
-   */
-  public void show(int timeout) {
-    if (!areControlsVisible && getLayerManager().getContainer() != null) {
-      updateProgress();
-
-      FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
-          ViewGroup.LayoutParams.MATCH_PARENT,
-          ViewGroup.LayoutParams.MATCH_PARENT,
-          Gravity.CENTER
-      );
-      getLayerManager().getContainer().removeView(view);
-      getLayerManager().getContainer().addView(view, layoutParams);
-      setupView();
-      areControlsVisible = true;
-    }
-    updatePlayPauseButton();
-
-    handler.sendEmptyMessage(SHOW_PROGRESS);
-
-    Message msg = handler.obtainMessage(FADE_OUT);
-    if (timeout > 0) {
-      handler.removeMessages(FADE_OUT);
-      handler.sendMessageDelayed(msg, timeout);
-    }
-  }
-
-  public void show() {
-    show(DEFAULT_TIMEOUT_MS);
-  }
-
-  public void showTopChrome() {
-    topChrome.setVisibility(View.VISIBLE);
-    updateActionButtons();
-    updateColors();
   }
 
   /**
