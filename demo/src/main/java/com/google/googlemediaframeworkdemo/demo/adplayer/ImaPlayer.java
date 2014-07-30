@@ -51,16 +51,12 @@ import java.util.List;
  * video player is overlaid on the content video player. When the ad is complete, the ad video
  * player is destroyed and the content video player is displayed again.
  */
-public class ImaPlayer implements AdErrorEvent.AdErrorListener,
-    AdsLoader.AdsLoadedListener, AdEvent.AdEventListener {
-
-  private Activity activity;
+public class ImaPlayer {
 
   /**
-   * Contains UI elements for the IMA SDK like the "Learn More" button and the number of seconds
-   * remianing in the ad.
+   * The activity that is displaying this video player.
    */
-  private AdDisplayContainer adDisplayContainer;
+  private Activity activity;
 
   /**
    * Url of the ad.
@@ -102,6 +98,9 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
    */
   private SimpleVideoPlayer contentPlayer;
 
+  /**
+   * The callback that is triggered when fullscreen mode is entered or closed.
+   */
   private PlaybackControlLayer.FullscreenCallback fullscreenCallback;
 
   /**
@@ -118,6 +117,9 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
    */
   private ViewGroup.LayoutParams originalContainerLayoutParams;
 
+  /**
+   * Notifies callbacks when the ad finishes.
+   */
   private final ExoplayerWrapper.PlaybackListener playbackListener
       = new ExoplayerWrapper.PlaybackListener() {
     @Override
@@ -140,6 +142,51 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
     }
   };
 
+  /**
+   * Sets up ads manager, responds to ad errors, and handles ad state changes.
+   */
+  private class AdListener implements AdErrorEvent.AdErrorListener,
+      AdsLoader.AdsLoadedListener, AdEvent.AdEventListener {
+    @Override
+    public void onAdError(AdErrorEvent adErrorEvent) {
+      // If there is an error in ad playback, log the error and resume the content.
+      Log.d(this.getClass().getSimpleName(), adErrorEvent.getError().getMessage());
+
+      // Display a toast message indicating the error.
+      // You should remove this line of code for your production app.
+      Toast.makeText(activity, adErrorEvent.getError().getMessage(), Toast.LENGTH_SHORT).show();
+      resumeContent();
+    }
+
+    @Override
+    public void onAdEvent(AdEvent event) {
+      switch (event.getType()) {
+        case LOADED:
+          adsManager.start();
+          break;
+        case CONTENT_PAUSE_REQUESTED:
+          pauseContent();
+          break;
+        case CONTENT_RESUME_REQUESTED:
+          resumeContent();
+          break;
+        default:
+          break;
+      }
+    }
+
+    @Override
+    public void onAdsManagerLoaded(AdsManagerLoadedEvent adsManagerLoadedEvent) {
+      adsManager = adsManagerLoadedEvent.getAdsManager();
+      adsManager.addAdErrorListener(this);
+      adsManager.addAdEventListener(this);
+      adsManager.init();
+    }
+  }
+
+  /**
+   * Handles loading, playing, retrieving progress, pausing, resuming, and stopping ad.
+   */
   private final VideoAdPlayer videoAdPlayer = new VideoAdPlayer() {
     @Override
     public void playAd() {
@@ -241,8 +288,9 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
     }
 
     adsLoader = ImaSdkFactory.getInstance().createAdsLoader(activity, sdkSettings);
-    adsLoader.addAdErrorListener(this);
-    adsLoader.addAdsLoadedListener(this);
+    AdListener adListener = new AdListener();
+    adsLoader.addAdErrorListener(adListener);
+    adsLoader.addAdsLoadedListener(adListener);
 
     callbacks = new ArrayList<VideoAdPlayer.VideoAdPlayerCallback>();
 
@@ -285,26 +333,96 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
                  Video video,
                  String videoTitle,
                  String adTagUrl) {
-    this(activity, container, video, videoTitle, createImaSdkSettings(), adTagUrl);
+    this(activity,
+        container,
+        video,
+        videoTitle,
+        ImaSdkFactory.getInstance().createImaSdkSettings(),
+        adTagUrl);
   }
 
   public ImaPlayer(Activity activity,
                    FrameLayout container,
                    Video video,
                    String videoTitle) {
-    this(activity, container, video, videoTitle, createImaSdkSettings(), null);
+    this(activity,
+        container,
+        video,
+        videoTitle,
+        ImaSdkFactory.getInstance().createImaSdkSettings(),
+        null);
   }
 
   public ImaPlayer(Activity activity,
                    FrameLayout container,
                    Video video) {
-    this(activity, container, video, "", createImaSdkSettings(), null);
+    this(activity,
+        container,
+        video,
+        "",
+        ImaSdkFactory.getInstance().createImaSdkSettings(),
+        null);
   }
 
-  /**
-   * Kill the current ad player, create a new one, and start playing the ad.
-   */
-  public void createAdPlayer(){
+  // Public methods.
+
+  public void pause() {
+    if (adPlayer != null) {
+      adPlayer.pause();
+    }
+    contentPlayer.pause();
+  }
+
+  public void play() {
+    if (adTagUrl != null) {
+      requestAd();
+    } else {
+      contentPlayer.play();
+    }
+  }
+
+  public SimpleVideoPlayer getContentPlayer() {
+    return contentPlayer;
+  }
+
+  public void setFullscreenCallback(
+      final PlaybackControlLayer.FullscreenCallback fullscreenCallback) {
+    this.fullscreenCallback = new PlaybackControlLayer.FullscreenCallback() {
+      @Override
+      public void onGoToFullscreen() {
+        fullscreenCallback.onGoToFullscreen();
+        container.setLayoutParams(Util.getLayoutParamsBasedOnParent(
+            container,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ));
+      }
+
+      @Override
+      public void onReturnFromFullscreen() {
+        fullscreenCallback.onReturnFromFullscreen();
+        container.setLayoutParams(originalContainerLayoutParams);
+      }
+    };
+
+    if (adPlayer != null) {
+      adPlayer.setFullscreenCallback(fullscreenCallback);
+    } else {
+      contentPlayer.setFullscreenCallback(fullscreenCallback);
+    }
+  }
+
+  public void release() {
+    if (adPlayer != null) {
+      adPlayer.release();
+    }
+    contentPlayer.release();
+  }
+
+  // Private methods.
+
+  private void createAdPlayer(){
+    // Kill any existing ad player.
     destroyAdPlayer();
 
     // Add the ad frame layout to the adDisplayContainer that contains all the content player.
@@ -346,14 +464,7 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
     }
   }
 
-  public static ImaSdkSettings createImaSdkSettings() {
-    return ImaSdkFactory.getInstance().createImaSdkSettings();
-  }
-
-  /**
-   * Kill the ad player.
-   */
-  public void destroyAdPlayer(){
+  private void destroyAdPlayer(){
     if(adPlayerContainer != null){
       container.removeView(adPlayerContainer);
     }
@@ -369,71 +480,24 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
     setFullscreenCallback(fullscreenCallback);
   }
 
-  public FrameLayout getUiContainer(){
-    return adUiContainer;
-  }
-
-  public VideoAdPlayer getVideoAdPlayer() {
-    return videoAdPlayer;
-  }
-
-  public void hideContentPlayer(){
+  private void hideContentPlayer(){
     contentPlayer.pause();
     contentPlayer.hide();
   }
 
-  @Override
-  public void onAdError(AdErrorEvent adErrorEvent) {
-    // If there is an error in ad playback, log the error and resume the content.
-    Log.d(this.getClass().getSimpleName(), adErrorEvent.getError().getMessage());
-
-    // Display a toast message indicating the error.
-    // You should remove this line of code for your production app.
-    Toast.makeText(activity, adErrorEvent.getError().getMessage(), Toast.LENGTH_SHORT).show();
-    resumeContent();
+  private void showContentPlayer(){
+    contentPlayer.show();
+    contentPlayer.play();
   }
 
-  @Override
-  public void onAdEvent(AdEvent event) {
-    switch (event.getType()) {
-      case LOADED:
-        adsManager.start();
-        break;
-      case CONTENT_PAUSE_REQUESTED:
-        pauseContent();
-        break;
-      case CONTENT_RESUME_REQUESTED:
-        resumeContent();
-        break;
-      default:
-        break;
-    }
-  }
-
-  @Override
-  public void onAdsManagerLoaded(AdsManagerLoadedEvent adsManagerLoadedEvent) {
-    adsManager = adsManagerLoadedEvent.getAdsManager();
-    adsManager.addAdErrorListener(this);
-    adsManager.addAdEventListener(this);
-    adsManager.init();
-  }
-
-  public void pauseContent(){
+  private void pauseContent(){
     hideContentPlayer();
     for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
       callback.onPause();
     }
   }
 
-  public void play() {
-    if (adTagUrl != null) {
-      requestAd();
-    } else {
-      getContentPlayer().play();
-    }
-  }
-
-  public void resumeContent(){
+  private void resumeContent(){
     destroyAdPlayer();
     showContentPlayer();
     for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
@@ -441,53 +505,10 @@ public class ImaPlayer implements AdErrorEvent.AdErrorListener,
     }
   }
 
-  public void setFullscreenCallback(
-      final PlaybackControlLayer.FullscreenCallback fullscreenCallback) {
-    this.fullscreenCallback = new PlaybackControlLayer.FullscreenCallback() {
-      @Override
-      public void onGoToFullscreen() {
-        fullscreenCallback.onGoToFullscreen();
-        container.setLayoutParams(Util.getLayoutParamsBasedOnParent(
-            container,
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
-        ));
-      }
-
-      @Override
-      public void onReturnFromFullscreen() {
-        fullscreenCallback.onReturnFromFullscreen();
-        container.setLayoutParams(originalContainerLayoutParams);
-      }
-    };
-
-    if (adPlayer != null) {
-      adPlayer.setFullscreenCallback(fullscreenCallback);
-    } else {
-      contentPlayer.setFullscreenCallback(fullscreenCallback);
-    }
-  }
-
-  public void showContentPlayer(){
-    contentPlayer.show();
-    contentPlayer.play();
-  }
-
-  public SimpleVideoPlayer getContentPlayer() {
-    return contentPlayer;
-  }
-
-  public void release() {
-    if (adPlayer != null) {
-      adPlayer.release();
-    }
-    contentPlayer.release();
-  }
-
   private AdsRequest buildAdsRequest(String tagUrl) {
-    adDisplayContainer = ImaSdkFactory.getInstance().createAdDisplayContainer();
-    adDisplayContainer.setPlayer(getVideoAdPlayer());
-    adDisplayContainer.setAdContainer(getUiContainer());
+    AdDisplayContainer adDisplayContainer = ImaSdkFactory.getInstance().createAdDisplayContainer();
+    adDisplayContainer.setPlayer(videoAdPlayer);
+    adDisplayContainer.setAdContainer(adUiContainer);
     AdsRequest request = ImaSdkFactory.getInstance().createAdsRequest();
     request.setAdTagUrl(tagUrl);
 
