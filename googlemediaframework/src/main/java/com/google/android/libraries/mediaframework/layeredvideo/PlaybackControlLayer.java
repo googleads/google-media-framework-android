@@ -29,7 +29,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -170,6 +169,11 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   private LinearLayout bottomChrome;
 
   /**
+   * Whether the user can drag the seek bar thumb to seek.
+   */
+  private boolean canSeek;
+
+  /**
    * Derived from the Color class. The chrome consists of three UI elements:
    * 1) The top bar which contains the logo, title, and action buttons.
    * 2) The bottom bar which contains the play/pause button, seekBar, and fullscreen buttons.
@@ -247,6 +251,20 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   /**
    * Derived from the {@link Color} class (ex. {@link Color#RED}).
    */
+  private int seekbarColor;
+
+  /**
+   * Whether the play button has been pressed and the video should be playing.
+   * We include this variable because the video may pause when buffering must occur. Although
+   * the video will usually resume automatically when the buffering is complete, there are instances
+   * (i.e. ad playback), where it will not resume automatically. So, if we detect that the video is
+   * paused after buffering and should be playing, we can resume it programmatically.
+   */
+  private boolean shouldBePlaying;
+
+  /**
+   * Derived from the {@link Color} class (ex. {@link Color#RED}).
+   */
   private int textColor;
 
   /**
@@ -288,7 +306,9 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
   public PlaybackControlLayer(String videoTitle, FullscreenCallback fullscreenCallback) {
     this.videoTitle = videoTitle;
+    this.canSeek = true;
     this.fullscreenCallback = fullscreenCallback;
+    this.shouldBePlaying = false;
     actionButtons = new ArrayList<ImageButton>();
   }
 
@@ -323,6 +343,8 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     button.setBackgroundColor(Color.TRANSPARENT);
     button.setLayoutParams(layoutParams);
 
+    isFullscreen = false;
+
     actionButtons.add(button);
 
     if (middleSection != null) {
@@ -349,6 +371,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     textColor = DEFAULT_TEXT_COLOR;
     chromeColor = DEFAULT_CHROME_COLOR;
     controlColor = DEFAULT_CONTROL_TINT_COLOR;
+    seekbarColor = DEFAULT_CONTROL_TINT_COLOR;
 
     if (logoDrawable != null) {
       logoImageView.setImageDrawable(logoDrawable);
@@ -366,6 +389,13 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     });
 
     return view;
+  }
+
+  public void disableSeeking() {
+    this.canSeek = false;
+    if (middleSection != null) {
+      updateColors();
+    }
   }
 
   /**
@@ -431,7 +461,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
           }
       );
 
-      container.setLayoutParams(getLayoutParamsBasedOnParent(container,
+      container.setLayoutParams(Util.getLayoutParamsBasedOnParent(container,
           ViewGroup.LayoutParams.MATCH_PARENT,
           ViewGroup.LayoutParams.MATCH_PARENT
       ));
@@ -442,50 +472,16 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  public void enableSeeking() {
+    this.canSeek = true;
+    if (middleSection != null) {
+      updateColors();
+    }
+  }
+
   public LayerManager getLayerManager() {
     return layerManager;
   }
-
-  /**
-   * Create a LayoutParams object for the given view which enforces a given width and height.
-   *
-   * <p>This method is a bit complicated because the TYPE of the LayoutParams that a view must
-   * receive (ex. LinearLayout.LayoutParams, RelativeLayout.LayoutParams) depends on the type of its
-   * PARENT view.
-   *
-   * <p>Thus, in this method, we look at the parent view of the given view, determine its type,
-   * and create the appropriate LayoutParams for that type.
-   *
-   * <p>This method only supports views which are nested inside a FrameLayout, LinearLayout, or
-   * GridLayout.
-   */
-  public ViewGroup.LayoutParams getLayoutParamsBasedOnParent(View view, int width, int height)
-      throws IllegalArgumentException {
-
-    // Get the parent of the given view.
-    ViewParent parent = view.getParent();
-
-    // Determine what is the parent's type and return the appropriate type of LayoutParams.
-    if (parent instanceof FrameLayout) {
-      return new FrameLayout.LayoutParams(width, height);
-    }
-    if (parent instanceof RelativeLayout) {
-      return new RelativeLayout.LayoutParams(width, height);
-    }
-    if (parent instanceof LinearLayout) {
-      return new LinearLayout.LayoutParams(width, height);
-    }
-
-    // Throw this exception if the parent is not the correct type.
-    IllegalArgumentException exception = new IllegalArgumentException("The PARENT of a " +
-        "FrameLayout container used by the GoogleMediaFramework must be a LinearLayout, " +
-        "FrameLayout, or RelativeLayout. Please ensure that the container is inside one of these " +
-        "three supported view groups.");
-    
-    // If the parent is not one of the supported types, throw our exception.
-    throw exception;
-  }
-
 
   public void hide() {
     FrameLayout container = getLayerManager().getContainer();
@@ -506,6 +502,20 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
       }
       handler.removeMessages(SHOW_PROGRESS);
       areControlsVisible = false;
+    }
+  }
+
+  public void hideTopChrome() {
+    topChrome.setVisibility(View.GONE);
+  }
+
+  public boolean isFullscreen() {
+    return isFullscreen;
+  }
+
+  public void setFullscreen(boolean shouldBeFullscreen) {
+    if (shouldBeFullscreen != isFullscreen) {
+      doToggleFullscreen();
     }
   }
 
@@ -573,6 +583,13 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     updatePlayPauseButton();
   }
 
+  public void setSeekbarColor(int color) {
+    this.seekbarColor = color;
+    if (middleSection != null) {
+      updateColors();
+    }
+  }
+
   public void setTextColor(int color) {
     this.textColor = color;
     if (middleSection != null) {
@@ -636,8 +653,9 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
       @Override
       public void onProgressChanged(SeekBar seekBar, int progress, boolean fromuser) {
-        if (!fromuser) {
+        if (!fromuser || !canSeek) {
           // Ignore programmatic changes to seek bar position.
+          // Ignore changes to seek bar position is seeking is not enabled.
           return;
         }
 
@@ -675,6 +693,10 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
   }
 
+  public boolean shouldBePlaying() {
+    return shouldBePlaying;
+  }
+
   /**
    * Add the view back to the container. The playback controls disappear after timeout milliseconds.
    * @param timeout Hide the view after timeout milliseconds. If timeout == 0, then the playback
@@ -709,6 +731,12 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     show(DEFAULT_TIMEOUT_MS);
   }
 
+  public void showTopChrome() {
+    topChrome.setVisibility(View.VISIBLE);
+    updateActionButtons();
+    updateColors();
+  }
+
   /**
    * Format the milliseconds to HH:MM:SS or MM:SS format.
    */
@@ -728,7 +756,8 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   }
 
   public void togglePause() {
-    setPlayPause(!getLayerManager().getControl().isPlaying());
+    this.shouldBePlaying = !getLayerManager().getControl().isPlaying();
+    setPlayPause(shouldBePlaying);
   }
 
   /**
@@ -804,8 +833,15 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
     fullscreenButton.setColorFilter(controlColor);
     pausePlayButton.setColorFilter(controlColor);
-    seekBar.getProgressDrawable().setColorFilter(controlColor, PorterDuff.Mode.SRC_ATOP);
+    seekBar.getProgressDrawable().setColorFilter(seekbarColor, PorterDuff.Mode.SRC_ATOP);
     seekBar.getThumb().setColorFilter(controlColor, PorterDuff.Mode.SRC_ATOP);
+
+    // Hide the thumb drawable if the SeekBar is disabled
+    if (canSeek) {
+      seekBar.getThumb().mutate().setAlpha(255);
+    } else {
+      seekBar.getThumb().mutate().setAlpha(0);
+    }
 
     for (ImageButton imageButton : actionButtons) {
       imageButton.setColorFilter(controlColor);
