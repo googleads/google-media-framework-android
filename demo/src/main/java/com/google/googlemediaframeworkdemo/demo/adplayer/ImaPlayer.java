@@ -18,8 +18,10 @@ package com.google.googlemediaframeworkdemo.demo.adplayer;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -379,8 +381,22 @@ public class ImaPlayer {
     }
   }
 
-  public SimpleVideoPlayer getContentPlayer() {
-    return contentPlayer;
+  public void setLogoImage(Drawable logoImage) {
+    contentPlayer.setLogoImage(logoImage);
+  }
+
+  public void setChromeColor(int chromeColor) {
+    contentPlayer.setChromeColor(chromeColor);
+  }
+
+  public void setPlaybackControlColor(int controlColor) {
+    contentPlayer.setPlaybackControlColor(controlColor);
+  }
+
+  public void addActionButton(Drawable icon,
+                              String contentDescription,
+                              View.OnClickListener onClickListener) {
+    contentPlayer.addActionButton(icon, contentDescription, onClickListener);
   }
 
   public void setFullscreenCallback(

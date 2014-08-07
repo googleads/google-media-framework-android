@@ -111,27 +111,25 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
         adTagUrl);
     imaPlayer.setFullscreenCallback(this);
 
-    SimpleVideoPlayer videoPlayer = imaPlayer.getContentPlayer();
-
     Resources res = getResources();
 
     // Customize the UI of the video player.
 
     // Set a logo (an Android icon will be displayed in the top left)
     Drawable logo = res.getDrawable(R.drawable.gmf_icon);
-    videoPlayer.setLogoImage(logo);
+    imaPlayer.setLogoImage(logo);
 
     // Uncomment the following lines to set the color of the player's top bar, bottom bar, and
     // background to be a blue color.
 
     // int sampleChromeColor = res.getColor(R.color.sample_chrome_color);
-    // videoPlayer.setChromeColor(sampleChromeColor);
+    // imaPlayer.setChromeColor(sampleChromeColor);
 
     // Uncomment the following lines to set the color of the buttons and seekbar in the player
     // to be a green color.
 
     // int samplePlaybackControlColor = res.getColor(R.color.sample_playback_control_color);
-    // videoPlayer.setPlaybackControlColor(samplePlaybackControlColor);
+    // imaPlayer.setPlaybackControlColor(samplePlaybackControlColor);
 
     // Add three buttons to the video player's set of action buttons.
     //
@@ -146,7 +144,7 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
     // When an action is triggered (either by clicking it in the dialog box when the video player is
     // not in fullscreen or by clicking its corresponding button when the video player is in
     // fullscreen), it will display a toast message.
-    videoPlayer.addActionButton(
+    imaPlayer.addActionButton(
         res.getDrawable(R.drawable.ic_action_share),
         getString(R.string.option1),
         new View.OnClickListener() {
@@ -159,7 +157,7 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
           }
         }
     );
-    videoPlayer.addActionButton(
+    imaPlayer.addActionButton(
         getResources().getDrawable(R.drawable.ic_action_discard),
         getString(R.string.option2),
         new View.OnClickListener() {
@@ -172,7 +170,7 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
           }
         }
     );
-    videoPlayer.addActionButton(
+    imaPlayer.addActionButton(
         getResources().getDrawable(R.drawable.ic_action_favorite),
         getString(R.string.option3),
         new View.OnClickListener() {
