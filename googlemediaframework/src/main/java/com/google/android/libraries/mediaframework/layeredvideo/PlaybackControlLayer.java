@@ -278,7 +278,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   private RelativeLayout topChrome;
 
-  private FrameLayout middleSection;
+  private FrameLayout playbackControlRootView;
 
   /**
    * Contains the seek bar, current time, end time, and fullscreen button. The background can
@@ -348,7 +348,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
     actionButtons.add(button);
 
-    if (middleSection != null) {
+    if (playbackControlRootView != null) {
       updateActionButtons();
       updateColors();
     }
@@ -389,12 +389,15 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
       }
     });
 
+    // Make the view hidden initially. It will be made visible again in the show(timeout) method.
+    playbackControlRootView.setVisibility(View.INVISIBLE);
+
     return view;
   }
 
   public void disableSeeking() {
     this.canSeek = false;
-    if (middleSection != null) {
+    if (playbackControlRootView != null) {
       updateColors();
     }
   }
@@ -475,7 +478,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
   public void enableSeeking() {
     this.canSeek = true;
-    if (middleSection != null) {
+    if (playbackControlRootView != null) {
       updateColors();
     }
   }
@@ -491,6 +494,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
 
     if (areControlsVisible) {
+      playbackControlRootView.setVisibility(View.INVISIBLE);
       container.removeView(view);
 
       // Make sure that the status bar and navigation bar are hidden when the playback controls
@@ -513,8 +517,12 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   public void show(int timeout) {
     if (!areControlsVisible && getLayerManager().getContainer() != null) {
+      // Make the view visible.
+      playbackControlRootView.setVisibility(View.VISIBLE);
+
       updateProgress();
 
+      // Add the view to the container again.
       FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
           ViewGroup.LayoutParams.MATCH_PARENT,
           ViewGroup.LayoutParams.MATCH_PARENT,
@@ -561,12 +569,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   }
 
   @Override
-  public void onLayerDisplayed(LayerManager layerManager) {
-    // We only want to show the playback control layer when the video is tapped, so display it
-    // for 1 MILLISECOND and then make it disappear.
-    // TODO(hsubrama): Figure out why playbackControlLayer.hide() doesn't work.
-    show(1);
-  }
+  public void onLayerDisplayed(LayerManager layerManager) {}
 
   @Override
   public void onPause() {
@@ -580,14 +583,14 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
   public void setChromeColor(int color) {
     chromeColor = color;
-    if (middleSection != null) {
+    if (playbackControlRootView != null) {
       updateColors();
     }
   }
 
   public void setControlColor(int color) {
     this.controlColor = color;
-    if (middleSection != null) {
+    if (playbackControlRootView != null) {
       updateColors();
       updateActionButtons();
     }
@@ -595,14 +598,14 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
   public void setSeekbarColor(int color) {
     this.seekbarColor = color;
-    if (middleSection != null) {
+    if (playbackControlRootView != null) {
       updateColors();
     }
   }
 
   public void setTextColor(int color) {
     this.textColor = color;
-    if (middleSection != null) {
+    if (playbackControlRootView != null) {
       updateColors();
     }
   }
@@ -661,7 +664,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     endTime = (TextView) view.findViewById(R.id.time_duration);
     currentTime = (TextView) view.findViewById(R.id.time_current);
     logoImageView = (ImageView) view.findViewById(R.id.logo_image);
-    middleSection = (FrameLayout) view.findViewById(R.id.middle_section);
+    playbackControlRootView = (FrameLayout) view.findViewById(R.id.middle_section);
     topChrome = (RelativeLayout) view.findViewById(R.id.top_chrome);
     bottomChrome = (LinearLayout) view.findViewById(R.id.bottom_chrome);
     actionButtonsContainer = (LinearLayout) view.findViewById(R.id.actions_container);
@@ -850,7 +853,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
     topChrome.setBackgroundColor(chromeColor);
     bottomChrome.setBackgroundColor(chromeColor);
-    middleSection.setBackgroundColor(
+    playbackControlRootView.setBackgroundColor(
         Color.argb(60,
             Color.red(chromeColor),
             Color.green(chromeColor),

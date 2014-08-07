@@ -129,7 +129,7 @@ public class SimpleVideoPlayer {
   }
 
   public void hide() {
-    playbackControlLayer.setVisibility(View.GONE);
+    playbackControlLayer.hide();
     subtitleLayer.setVisibility(View.GONE);
   }
 
@@ -212,7 +212,7 @@ public class SimpleVideoPlayer {
   }
 
   public void show() {
-    playbackControlLayer.setVisibility(View.VISIBLE);
+    playbackControlLayer.show();
     subtitleLayer.setVisibility(View.VISIBLE);
   }
 
