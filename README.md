@@ -19,6 +19,7 @@ The framework is currently in beta, allowing interested developers to try it out
     - Plays [MPEG DASH](http://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP) and mp4, and easily extended to other video formats
 
 ##Getting started
+
 Clone the repository
 
 ```git clone https://github.com/googleads/google-media-framework-android.git GoogleMediaFramework```
@@ -32,6 +33,9 @@ git submodule update
 ```
 
 Finally import the project in Android Studio (or build using Gradle via ``./gradlew``).
+
+##Wiki
+For a detailed description of the project, please see the [wiki](https://github.com/googleads/google-media-framework-android/wiki).
 
 ##Where do I report issues?
 Please report issues on the [issues page](../../issues).
