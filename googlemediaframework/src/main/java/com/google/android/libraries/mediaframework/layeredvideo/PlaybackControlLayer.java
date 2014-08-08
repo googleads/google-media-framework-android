@@ -16,6 +16,7 @@
 
 package com.google.android.libraries.mediaframework.layeredvideo;
 
+import android.animation.Animator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -145,6 +146,8 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   private static final int DEFAULT_TIMEOUT_MS = 3000;
 
+  public static final int FADE_OUT_DURATION_MS = 200;
+
   /**
    * Used by the {@link MessageHandler} to indicate that media controls should fade out.
    */
@@ -162,7 +165,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
   private boolean areControlsVisible;
 
-
+  private boolean isFadingOut;
 
   /**
    * Whether the user can drag the seek bar thumb to seek.
@@ -444,9 +447,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
       activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
       activity.getWindow().getDecorView().setSystemUiVisibility(
-          View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-          View.SYSTEM_UI_FLAG_FULLSCREEN
-      );
+          View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
 
       // Whenever the status bar and navigation bar appear, we want the playback controls to
       // appear as well.
@@ -467,8 +468,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
       container.setLayoutParams(Util.getLayoutParamsBasedOnParent(container,
           ViewGroup.LayoutParams.MATCH_PARENT,
-          ViewGroup.LayoutParams.MATCH_PARENT
-      ));
+          ViewGroup.LayoutParams.MATCH_PARENT));
 
       fullscreenButton.setImageResource(R.drawable.ic_action_return_from_full_screen);
 
@@ -488,25 +488,45 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   }
 
   public void hide() {
-    FrameLayout container = getLayerManager().getContainer();
+    if (isFadingOut) {
+      return;
+    }
+    final FrameLayout container = getLayerManager().getContainer();
     if (container == null) {
       return;
     }
 
     if (areControlsVisible) {
-      playbackControlRootView.setVisibility(View.INVISIBLE);
-      container.removeView(view);
+      isFadingOut = true;
+      playbackControlRootView.animate()
+          .alpha(0.0f)
+          .setDuration(FADE_OUT_DURATION_MS)
+          .setListener(new Animator.AnimatorListener() {
+              @Override
+              public void onAnimationStart(Animator animation) {}
 
-      // Make sure that the status bar and navigation bar are hidden when the playback controls
-      // are hidden.
-      if (isFullscreen) {
-        getLayerManager().getActivity().getWindow().getDecorView().setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-            View.SYSTEM_UI_FLAG_FULLSCREEN
-        );
-      }
-      handler.removeMessages(SHOW_PROGRESS);
-      areControlsVisible = false;
+              @Override
+              public void onAnimationEnd(Animator animation) {
+                isFadingOut = false;
+                playbackControlRootView.setVisibility(View.INVISIBLE);
+                container.removeView(view);
+
+                // Make sure that the status bar and navigation bar are hidden when the playback controls
+                // are hidden.
+                if (isFullscreen) {
+                  getLayerManager().getActivity().getWindow().getDecorView().setSystemUiVisibility(
+                      View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
+                }
+                handler.removeMessages(SHOW_PROGRESS);
+                areControlsVisible = false;
+              }
+
+              @Override
+              public void onAnimationCancel(Animator animation) {}
+
+              @Override
+              public void onAnimationRepeat(Animator animation) {}
+          });
     }
   }
 
@@ -517,6 +537,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   public void show(int timeout) {
     if (!areControlsVisible && getLayerManager().getContainer() != null) {
+      playbackControlRootView.setAlpha(1.0f);
       // Make the view visible.
       playbackControlRootView.setVisibility(View.VISIBLE);
 
