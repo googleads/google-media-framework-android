@@ -50,35 +50,51 @@ import java.util.Locale;
 
 
 /**
- * A {@link Layer} that creates a customizable user interface for controlling video playback.
+ * A {@link Layer} that creates a customizable view for controlling video playback.
  *
- * <p>The UI consists of:
- * 1) a top bar which contains a logo, title, and set of action buttons.
- * 2) a bottom bar which contains a seek bar, fullscreen button, and text views indicating
+ * <p>The view consists of:
+ *
+ * <p> 1) a top chrome which contains a logo, title, and set of action buttons.
+ *
+ * <p> 2) a bottom chrome which contains a seek bar, fullscreen button, and text views indicating
  * the current time and total duration of the video.
- * 3) a translucent middle section which displays a pause/play button.
  *
- * <p>The UI appears when the container containing the {@link PlaybackControlLayer} is tapped. It
+ * <p> 3) a translucent middle section which displays a pause/play button.
+ *
+ * <p>The view appears when the container containing the {@link PlaybackControlLayer} is tapped. It
  * automatically disappears after a given time.
  *
- * <p>The UI can be customized by:
- * 1) Setting the color of the top bar, bottom bar, and middle section - this is called the chrome
- * tint color.
- * 2) Setting the color of the text - this is called the text color.
- * 3) Setting the color of the buttons and seek bar - this is called the control tint color.
- * 4) Setting the logo image displayed in the left of the top bar.
- * 5) Setting the title of the video displayed in the left of the top bar
+ * <p>The view can be customized by:
+ *
+ * <p> 1) Setting the color of the top chrome, bottom chrome, and background - this is called
+ * the chrome tint color.
+ *
+ * <p> 2) Setting the color of the text - this is called the text color.
+ *
+ * <p> 3) Setting the color of the buttons and seek bar - this is called the control tint color.
+ *
+ * <p> 4) Setting the logo image displayed in the left of the top chrome.
+ *
+ * <p> 5) Setting the title of the video displayed in the left of the top chrome
  * (and to the right of the logo).
- * 6) Adding an action button by providing an image, a content description, and a click handler. If
+ *
+ * <p> 6) Adding an action button by providing an image, a content description, and a click handler. If
  * there is enough room, the action buttons will be displayed on the right of the top chrome. If
  * there is NOT enough room, an overflow button will be displayed. When the overflow button is
- * clicked, a dialog box listing the content descriptions for the action buttons is displayed. By
- * clicking an action in the list, the action can be triggered.
+ * clicked, a dialog box listing the content descriptions for the action buttons is displayed. The
+ * action is then triggered by selecting it from the dialog box.
  *
  * <p>The view is defined in the layout file: res/layout/playback_control_layer.xml.
  */
 public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
+  /**
+   * In order to imbue the {@link PlaybackControlLayer} with the ability make the player fullscreen,
+   * a {@link PlaybackControlLayer.FullscreenCallback} must be assigned to it. The
+   * {@link PlaybackControlLayer.FullscreenCallback} implementation is responsible for
+   * hiding/showing the other views on the screen when the player enters/leaves fullscreen
+   * mode.
+   */
   public interface FullscreenCallback {
 
     /**
@@ -98,15 +114,28 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    * This is useful for fading out the view after a certain time.
    */
   private static class MessageHandler extends Handler {
-    private final WeakReference<PlaybackControlLayer> playerView;
+    /**
+     * A reference to the {@link PlaybackControlLayer} that we are handling messages for.
+     */
+    private final WeakReference<PlaybackControlLayer> playbackControlLayer;
 
+    /**
+     * @param playbackControlLayer The {@link PlaybackControlLayer} we should handle messages for.
+     */
     private MessageHandler(PlaybackControlLayer playbackControlLayer) {
-      playerView = new WeakReference<PlaybackControlLayer>(playbackControlLayer);
+      this.playbackControlLayer = new WeakReference<PlaybackControlLayer>(playbackControlLayer);
     }
 
+    /**
+     * Receives either a {@link PlaybackControlLayer#FADE_OUT} message (which hides the playback
+     * control layer) or a {@link PlaybackControlLayer#SHOW_PROGRESS} message (which updates the
+     * seek bar to reflect the progress in the video).
+     * @param msg Either a {@link PlaybackControlLayer#FADE_OUT} or
+     * {@link PlaybackControlLayer#SHOW_PROGRESS} message.
+     */
     @Override
     public void handleMessage(Message msg) {
-      PlaybackControlLayer layer = playerView.get();
+      PlaybackControlLayer layer = playbackControlLayer.get();
       if (layer == null || layer.getLayerManager().getControl() == null) {
         return;
       }
@@ -118,7 +147,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
         case SHOW_PROGRESS:
           pos = layer.updateProgress();
           if (!layer.isSeekbarDragging
-              && layer.areControlsVisible
+              && layer.isVisible
               && layer.getLayerManager().getControl().isPlaying()) {
             msg = obtainMessage(SHOW_PROGRESS);
             sendMessageDelayed(msg, 1000 - (pos % 1000));
@@ -129,7 +158,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   }
 
   /**
-   * The chrome (i.e. the top bar, bottom bar, and middle section) is by default a slightly
+   * The chrome (the top chrome, bottom chrome, and background) is by default a slightly
    * transparent black.
    */
   public static final int DEFAULT_CHROME_COLOR = Color.argb(140, 0, 0, 0);
@@ -139,6 +168,9 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   public static final int DEFAULT_CONTROL_TINT_COLOR = Color.TRANSPARENT;
 
+  /**
+   * By default, the text is white.
+   */
   public static final int DEFAULT_TEXT_COLOR = Color.WHITE;
 
   /**
@@ -146,7 +178,10 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   private static final int DEFAULT_TIMEOUT_MS = 3000;
 
-  public static final int FADE_OUT_DURATION_MS = 200;
+  /**
+   * When the controls are hidden, they fade out in FADE_OUT_DURATION_MS milliseconds.
+   */
+  private static final int FADE_OUT_DURATION_MS = 200;
 
   /**
    * Used by the {@link MessageHandler} to indicate that media controls should fade out.
@@ -163,8 +198,14 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   private List<ImageButton> actionButtons;
 
-  private boolean areControlsVisible;
+  /**
+   * Whether the playback control layer is visible.
+   */
+  private boolean isVisible;
 
+  /**
+   * Whether the playback control layer is currently in the process of fading out.
+   */
   private boolean isFadingOut;
 
   /**
@@ -173,42 +214,52 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   private boolean canSeek;
 
   /**
-   * Derived from the Color class. The chrome consists of three UI elements:
-   * 1) The top bar which contains the logo, title, and action buttons.
-   * 2) The bottom bar which contains the play/pause button, seekBar, and fullscreen buttons.
-   * 3) The translucent middle section of the PlaybackControlLayer.
-   * The chromeColor changes the color of each of these elements.
+   * <p> Derived from the Color class (ex. {@link Color#RED}), the chrome consists of three
+   * views, which are are tinted with the the chrome color.
+   *
+   * <p> The views are:
+   *
+   * <p> 1) The top chrome which contains the logo, title, and action buttons.
+   *
+   * <p> 2) The bottom chrome which contains the play/pause button, seek bar, and fullscreen
+   * buttons.
+   *
+   * <p> 3) The translucent middle section of the PlaybackControlLayer.
+   *
+   * <p> The chromeColor changes the color of each of these elements.
    */
   private int chromeColor;
 
   /**
-   * Derived from the {@link Color} class (ex. {@link Color#RED}), this is the color of the
+   * Derived from the {@link Color} class (ex {@link Color#RED}), this is the color of the
    * play/pause button, fullscreen button, seek bar, and action buttons.
    */
   private int controlColor;
 
   /**
-   * Derived from the {@link Color} class (ex. {@link Color#RED}).
+   * Derived from the {@link Color} class (ex {@link Color#RED}), this is the color of the text
+   * views.
    */
   private int textColor;
 
   /**
-   * Derived from the {@link Color} class (ex. {@link Color#RED}).
+   * Derived from the {@link Color} class (ex {@link Color#RED}), this is the color of the seekbar
+   * track and thumb.
    */
   private int seekbarColor;
 
   /**
-   * Elapsed time into video.
+   * Displays the elapsed time into video.
    */
   private TextView currentTime;
 
   /**
-   * Duration of the video.
+   * Displays the duration of the video.
    */
   private TextView endTime;
 
   /**
-   * Makes player fullscreen. This button is not displayed unless there is a
+   * Makes player  enter or leave fullscreen. This button is not displayed unless there is a
    * {@link FullscreenCallback} associated with this object.
    */
   private ImageButton fullscreenButton;
@@ -224,10 +275,20 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   private Handler handler = new MessageHandler(this);
 
+  /**
+   * Whether the player is currently in fullscreen mode.
+   */
   private boolean isFullscreen;
 
+  /**
+   * Whether the seekbar is currently being dragged.
+   */
   private boolean isSeekbarDragging;
 
+  /**
+   * The {@link LayerManager} which is responsible for adding this layer to the container and
+   * displaying it on top of the video player.
+   */
   private LayerManager layerManager;
 
   /**
@@ -236,24 +297,30 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   private Drawable logoDrawable;
 
   /**
-   * Displayed in the left of the top bar - shows a logo. This is optional; if no image is provided,
-   * then no logo will be displayed.
+   * Displayed in the left of the top chrome - shows a logo. This is optional; if no image
+   * is provided, then no logo will be displayed.
    */
   private ImageView logoImageView;
 
   /**
-   * These is the layout of the container before fullscreen mode has been entered.
+   * This is the layout of the container before fullscreen mode has been entered.
    * When we leave fullscreen mode, we restore the layout of the container to this layout.
    */
   private ViewGroup.LayoutParams originalContainerLayoutParams;
 
   /**
-   * Contains the actions buttons (displayed in right of the top bar).
+   * Contains the actions buttons (displayed in right of the top chrome).
    */
   private LinearLayout actionButtonsContainer;
 
+  /**
+   * Displays the play icon when the video is playing, or the pause icon when the video is playing.
+   */
   private ImageButton pausePlayButton;
 
+  /**
+   * Displays a track and a thumb which can be used to seek to different time points in the video.
+   */
   private SeekBar seekBar;
 
   /**
@@ -266,9 +333,9 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   private boolean shouldBePlaying;
 
   /**
-   * Formats times to HH:MM:SS or MM:SS form.
+   * Encodes the HH:MM:SS or MM:SS time format.
    */
-  private StringBuilder timeFormatBuilder;
+  private StringBuilder timeFormat;
 
   /**
    * Formats times to HH:MM:SS or MM:SS form.
@@ -281,6 +348,10 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   private RelativeLayout topChrome;
 
+  /**
+   * This is the root view which contains all other views that make up the playback control layer.
+   * It can be tinted by setting the chrome color.
+   */
   private FrameLayout playbackControlRootView;
 
   /**
@@ -317,7 +388,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   }
 
   /**
-   * Creates a button to put in the set of action buttons at the right of the top bar.
+   * Creates a button to put in the set of action buttons at the right of the top chrome.
    * @param activity The activity that contains the video player.
    * @param icon The image of the action (ex. trash can).
    * @param contentDescription The text description this action. This is used in case the
@@ -384,7 +455,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     getLayerManager().getContainer().setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        if (areControlsVisible) {
+        if (isVisible) {
           hide();
         } else {
           show();
@@ -398,6 +469,10 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     return view;
   }
 
+  /**
+   * Hides the seek bar thumb and prevents the user from seeking to different time points in the
+   * video.
+   */
   public void disableSeeking() {
     this.canSeek = false;
     if (playbackControlRootView != null) {
@@ -406,9 +481,9 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   }
 
   /**
-   * Fullscreen mode will rotate to landscape mode, hide the action bar, and make the video player
-   * take up the full size of the display. The developer who is using this function must ensure the
-   * following:
+   * Fullscreen mode will rotate to landscape mode, hide the action bar, hide the navigation bar,
+   * hide the system tray, and make the video player take up the full size of the display.
+   * The developer who is using this function must ensure the following:
    *
    * <p>1) Inside the android manifest, the activity that uses the video player has the attribute
    * android:configChanges="orientation".
@@ -476,6 +551,10 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  /**
+   * Makes the seek bar thumb visible and allows the user to seek to different time points in the
+   * video.
+   */
   public void enableSeeking() {
     this.canSeek = true;
     if (playbackControlRootView != null) {
@@ -483,10 +562,17 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  /**
+   * Returns the {@link LayerManager} which is responsible for displaying this layer's view.
+   */
   public LayerManager getLayerManager() {
     return layerManager;
   }
 
+  /**
+   * Fades the playback control layer out and then removes it from the {@link LayerManager}'s
+   * container.
+   */
   public void hide() {
     if (isFadingOut) {
       return;
@@ -496,47 +582,48 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
       return;
     }
 
-    if (areControlsVisible) {
+    if (isVisible) {
       isFadingOut = true;
       playbackControlRootView.animate()
           .alpha(0.0f)
           .setDuration(FADE_OUT_DURATION_MS)
           .setListener(new Animator.AnimatorListener() {
-              @Override
-              public void onAnimationStart(Animator animation) {}
+            @Override
+            public void onAnimationStart(Animator animation) {}
 
-              @Override
-              public void onAnimationEnd(Animator animation) {
-                isFadingOut = false;
-                playbackControlRootView.setVisibility(View.INVISIBLE);
-                container.removeView(view);
+            @Override
+            public void onAnimationEnd(Animator animation) {
+              isFadingOut = false;
+              playbackControlRootView.setVisibility(View.INVISIBLE);
+              container.removeView(view);
 
-                // Make sure that the status bar and navigation bar are hidden when the playback controls
-                // are hidden.
-                if (isFullscreen) {
-                  getLayerManager().getActivity().getWindow().getDecorView().setSystemUiVisibility(
-                      View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
-                }
-                handler.removeMessages(SHOW_PROGRESS);
-                areControlsVisible = false;
+              // Make sure that the status bar and navigation bar are hidden when the playback
+              // controls are hidden.
+              if (isFullscreen) {
+                getLayerManager().getActivity().getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
               }
+              handler.removeMessages(SHOW_PROGRESS);
+              isVisible = false;
+            }
 
-              @Override
-              public void onAnimationCancel(Animator animation) {}
+            @Override
+            public void onAnimationCancel(Animator animation) {}
 
-              @Override
-              public void onAnimationRepeat(Animator animation) {}
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
           });
     }
   }
 
   /**
-   * Add the view back to the container. The playback controls disappear after timeout milliseconds.
+   * Add the playback control layer back to the container.
+   * The playback controls disappear after timeout milliseconds.
    * @param timeout Hide the view after timeout milliseconds. If timeout == 0, then the playback
    *                controls will not disappear unless their container is tapped again.
    */
   public void show(int timeout) {
-    if (!areControlsVisible && getLayerManager().getContainer() != null) {
+    if (!isVisible && getLayerManager().getContainer() != null) {
       playbackControlRootView.setAlpha(1.0f);
       // Make the view visible.
       playbackControlRootView.setVisibility(View.VISIBLE);
@@ -552,7 +639,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
       getLayerManager().getContainer().removeView(view);
       getLayerManager().getContainer().addView(view, layoutParams);
       setupView();
-      areControlsVisible = true;
+      isVisible = true;
     }
     updatePlayPauseButton();
 
@@ -565,24 +652,42 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  /**
+   * Add the playback control layer back to the container. It will disappear when the user taps
+   * the screen.
+   */
   public void show() {
     show(DEFAULT_TIMEOUT_MS);
   }
 
+  /**
+   * Hides the top chrome (which displays the logo, title, and action buttons).
+   */
   public void hideTopChrome() {
     topChrome.setVisibility(View.GONE);
   }
 
+  /**
+   * Shows the top chrome (which displays the logo, title, and action buttons).
+   */
   public void showTopChrome() {
     topChrome.setVisibility(View.VISIBLE);
     updateActionButtons();
     updateColors();
   }
 
+  /**
+   * Returns whether the player is currently in fullscreen mode.
+   */
   public boolean isFullscreen() {
     return isFullscreen;
   }
 
+  /**
+   * Make the player enter or leave fullscreen mode.
+   * @param shouldBeFullscreen If true, the player is put into fullscreen mode. If false, the player
+   *                           leaves fullscreen mode.
+   */
   public void setFullscreen(boolean shouldBeFullscreen) {
     if (shouldBeFullscreen != isFullscreen) {
       doToggleFullscreen();
@@ -592,16 +697,26 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   @Override
   public void onLayerDisplayed(LayerManager layerManager) {}
 
+  /**
+   * Updates the play/pause button to the play icon.
+   */
   @Override
   public void onPause() {
     updatePlayPauseButton();
   }
 
+  /**
+   * Updates the play/pause button to the pause icon.
+   */
   @Override
   public void onPlay() {
     updatePlayPauseButton();
   }
 
+  /**
+   * Sets the color of the top chrome, bottom chrome, and background.
+   * @param color a color derived from the @{link Color} class (ex. {@link Color#RED}).
+   */
   public void setChromeColor(int color) {
     chromeColor = color;
     if (playbackControlRootView != null) {
@@ -609,6 +724,10 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  /**
+   * Sets the color of the buttons and seek bar.
+   * @param color a color derived from the @{link Color} class (ex. {@link Color#RED}).
+   */
   public void setControlColor(int color) {
     this.controlColor = color;
     if (playbackControlRootView != null) {
@@ -617,6 +736,10 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  /**
+   * Sets the color of the seekbar.
+   * @param color a color derived from the @{link Color} class (ex. {@link Color#RED}).
+   */
   public void setSeekbarColor(int color) {
     this.seekbarColor = color;
     if (playbackControlRootView != null) {
@@ -624,6 +747,10 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  /**
+   * Sets the color of the text views
+   * @param color a color derived from the @{link Color} class (ex. {@link Color#RED}).
+   */
   public void setTextColor(int color) {
     this.textColor = color;
     if (playbackControlRootView != null) {
@@ -631,6 +758,12 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  /**
+   * Set the callback which will be called when the player enters and leaves fullscreen mode.
+   * @param fullscreenCallback The callback should hide other views in the activity when the player
+   *                           enters fullscreen mode and show other views when the player leaves
+   *                           fullscreen mode.
+   */
   public void setFullscreenCallback(FullscreenCallback fullscreenCallback) {
     this.fullscreenCallback = fullscreenCallback;
     if (fullscreenButton != null && fullscreenCallback != null) {
@@ -640,6 +773,10 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  /**
+   * Set the logo with appears in the left of the top chrome.
+   * @param logo The drawable which will be the logo.
+   */
   public void setLogoImageView(Drawable logo) {
     logoDrawable = logo;
     if (logoImageView != null) {
@@ -647,6 +784,10 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
+  /**
+   * Play or pause the player.
+   * @param shouldPlay If true, then the player starts playing. If false, the player pauses.
+   */
   public void setPlayPause(boolean shouldPlay) {
     PlayerControl playerControl = getLayerManager().getControl();
     if (playerControl == null) {
@@ -662,15 +803,15 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     updatePlayPauseButton();
   }
 
+  /**
+   * Set the title of the video in the left of the top chrome (to the right of the logo).
+   * @param title The video title. If it is too long, it will be ellipsized.
+   */
   public void setVideoTitle(String title) {
     videoTitle = title;
     if (videoTitleView != null) {
       videoTitleView.setText(title);
     }
-  }
-
-  public void setVisibility(int visibility) {
-    view.setVisibility(visibility);
   }
 
   /**
@@ -694,7 +835,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     pausePlayButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        togglePause();
+        togglePlayPause();
         show(DEFAULT_TIMEOUT_MS);
       }
     });
@@ -753,11 +894,16 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
     videoTitleView.setText(videoTitle);
 
-    timeFormatBuilder = new StringBuilder();
-    timeFormatter = new Formatter(timeFormatBuilder, Locale.getDefault());
+    timeFormat = new StringBuilder();
+    timeFormatter = new Formatter(timeFormat, Locale.getDefault());
 
   }
 
+  /**
+   * Returns whether the player should be playing (based on whether the user has
+   * tapped pause or play). This can be used by other classes to look at the playback control
+   * layer's play/pause state and force the player to play or pause accordingly.
+   */
   public boolean shouldBePlaying() {
     return shouldBePlaying;
   }
@@ -772,7 +918,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     int minutes = (totalSeconds / 60) % 60;
     int hours = totalSeconds / 3600;
 
-    timeFormatBuilder.setLength(0);
+    timeFormat.setLength(0);
     if (hours > 0) {
       return timeFormatter.format("%d:%02d:%02d", hours, minutes, seconds).toString();
     } else {
@@ -780,7 +926,10 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
   }
 
-  public void togglePause() {
+  /**
+   * If the player is paused, play it and if the player is playing, pause it.
+   */
+  public void togglePlayPause() {
     this.shouldBePlaying = !getLayerManager().getControl().isPlaying();
     setPlayPause(shouldBePlaying);
   }

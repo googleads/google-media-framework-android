@@ -20,6 +20,14 @@ package com.google.android.libraries.mediaframework.exoplayerextensions;
  * Callback for handling the play or pause of a player control.
  */
 public interface PlayerControlCallback {
+
+  /**
+   * Respond when the player has just been paused.
+   */
   public void onPause();
+
+  /**
+   * Respond when the player just started playing.
+   */
   public void onPlay();
 }

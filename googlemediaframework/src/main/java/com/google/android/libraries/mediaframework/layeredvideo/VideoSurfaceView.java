@@ -32,16 +32,31 @@ public class VideoSurfaceView extends SurfaceView {
    */
   private static final float MAX_ASPECT_RATIO_DEFORMATION_PERCENT = 0.01f;
 
+  /**
+   * The ratio of the width and height of the video.
+   */
   private float videoAspectRatio;
 
+  /**
+   * @param context The context (ex {@link android.app.Activity}) that created this object.
+   */
   public VideoSurfaceView(Context context) {
     super(context);
   }
 
+  /**
+   * @param context The context (ex {@link android.app.Activity}) that created this object.
+   * @param attrs A set of attributes to configure the {@link android.view.SurfaceView}.
+   */
   public VideoSurfaceView(Context context, AttributeSet attrs) {
     super(context, attrs);
   }
 
+  /**
+   * Resize the view based on the width and height specifications.
+   * @param widthMeasureSpec The specified width.
+   * @param heightMeasureSpec The specified height.
+   */
   @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);

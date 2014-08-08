@@ -28,7 +28,14 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Exoplayer
  */
 public class SubtitleLayer implements Layer, ExoplayerWrapper.TextListener {
 
+  /**
+   * The text view that displays the subtitles.
+   */
   private TextView subtitles;
+
+  /**
+   * The view that is created by this layer (it contains SubtitleLayer#subtitles).
+   */
   private FrameLayout view;
 
   @Override
@@ -47,11 +54,20 @@ public class SubtitleLayer implements Layer, ExoplayerWrapper.TextListener {
 
   }
 
+  /**
+   * When subtitles arrive, display them in the text view.
+   * @param text The subtitles that must be displayed.
+   */
   @Override
   public void onText(String text) {
     this.subtitles.setText(text);
   }
 
+  /**
+   * Show or hide the subtitles.
+   * @param visibility One of {@link android.view.View#INVISIBLE},
+   *                   {@link android.view.View#VISIBLE}, {@link android.view.View#GONE}.
+   */
   public void setVisibility(int visibility) {
     view.setVisibility(visibility);
   }

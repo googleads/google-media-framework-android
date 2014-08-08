@@ -29,8 +29,15 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Exoplayer
  */
 public class VideoSurfaceLayer implements Layer {
 
+  /**
+   * Whether the video starts playing as soon as the surface is created.
+   */
   private boolean autoplay;
 
+  /**
+   * The {@link LayerManager} whcih is responsible for creating this layer's view and adding it to
+   * the video player.
+   */
   private LayerManager layerManager;
 
   /**
@@ -95,6 +102,9 @@ public class VideoSurfaceLayer implements Layer {
    */
   private FrameLayout view;
 
+  /**
+   * @param autoplay Whether the video should start playing as soon as the surface view is created.
+   */
   public VideoSurfaceLayer(boolean autoplay) {
     this.autoplay = autoplay;
   }
@@ -140,10 +150,18 @@ public class VideoSurfaceLayer implements Layer {
     surfaceView.setZOrderMediaOverlay(true);
   }
 
+  /**
+   * Sets whether the video should start playing as soon as the surface is created.
+   * @param autoplay If true, the video starts playing as soon as the surface is created. If false,
+   *                 then the video must be started programmatically.
+   */
   public void setAutoplay(boolean autoplay) {
     this.autoplay = autoplay;
   }
 
+  /**
+   * When you are finished using this object, call this method.
+   */
   public void release() {
     layerManager.getExoplayerWrapper().removeListener(playbackListener);
   }

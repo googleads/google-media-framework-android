@@ -99,8 +99,24 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    * A listener for basic playback events.
    */
   public interface PlaybackListener {
+    /**
+     * Respond to a change to the Exoplayer state.
+     * @param playWhenReady Whether the player should play as soon as it is set up.
+     * @param playbackState The state of Exoplayer instance.
+     */
     void onStateChanged(boolean playWhenReady, int playbackState);
+
+    /**
+     * Respond to error.
+     * @param e The error.
+     */
     void onError(Exception e);
+
+    /**
+     * Respond to a change in the video size.
+     * @param width The new width of the video.
+     * @param height The new height of the video.
+     */
     void onVideoSizeChanged(int width, int height);
   }
 
@@ -117,12 +133,49 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    * behaving in an undesired way.
    */
   public interface InternalErrorListener {
+
+    /**
+     * Respond to error in renderer initialization.
+     * @param e The error.
+     */
     void onRendererInitializationError(Exception e);
+
+    /**
+     * Respond to error in initializing the audio track.
+     * @param e The error.
+     */
     void onAudioTrackInitializationError(AudioTrackInitializationException e);
+
+    /**
+     * Respond to error in initializing the decoder.
+     * @param e The error.
+     */
     void onDecoderInitializationError(DecoderInitializationException e);
+
+    /**
+     * Respond to error in setting up security of video.
+     * @param e The error.
+     */
     void onCryptoError(CryptoException e);
+
+    /**
+     * Respond to error that occurs at the source of the video.
+     * @param sourceId The id of the source of the video.
+     * @param e The error.
+     */
     void onUpstreamError(int sourceId, IOException e);
+
+    /**
+     * Respond to error when consuming video data from a source.
+     * @param sourceId The id of the source of the video.
+     * @param e The error.
+     */
     void onConsumptionError(int sourceId, IOException e);
+
+    /**
+     * Respond to error in DRM setup.
+     * @param e The error.
+     */
     void onDrmSessionManagerError(Exception e);
   }
 
@@ -130,12 +183,59 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    * A listener for debugging information.
    */
   public interface InfoListener {
+
+    /**
+     * Respond to a change in the format of the video.
+     * @param formatId The new format of the video.
+     * @param trigger The reason for a chunk being selected.
+     * @param mediaTimeMs The start time of the media contained by the chunk, in microseconds.
+     */
     void onVideoFormatEnabled(String formatId, int trigger, int mediaTimeMs);
+
+    /**
+     * Respond to a change in the audio format.
+     * @param formatId The new format of the audio.
+     * @param trigger The reason for a chunk being selected.
+     * @param mediaTimeMs The start time of the media contained by the chunk, in microseconds.
+     */
     void onAudioFormatEnabled(String formatId, int trigger, int mediaTimeMs);
+
+    /**
+     * Respond to frame drops.
+     * @param count The number of dropped frames.
+     * @param elapsed The number of milliseconds in which the frames were dropped.
+     */
     void onDroppedFrames(int count, long elapsed);
+
+    /**
+     * Respond to a new estimate of the bandwidth.
+     * @param elapsedMs The duration of the sampling period in milliseconds.
+     * @param bytes The number of bytes received during the sampling period.
+     * @param bandwidthEstimate The estimated bandwidth in bytes/sec, or
+     *                          {@link com.google.android.exoplayer.upstream.DefaultBandwidthMeter
+     *                          #NO_ESTIMATE} if no estimate is available. Note that this estimate
+     *                          is typically derived from more information than {@code bytes} and
+     *                          {@code elapsedMs}.
+     */
     void onBandwidthSample(int elapsedMs, long bytes, long bandwidthEstimate);
+
+    /**
+     * Respond to starting a load of data.
+     * @param sourceId The id of the source of the video.
+     * @param formatId The new format of the audio.
+     * @param trigger The reason for a chunk being selected.
+     * @param isInitialization Whether this is the first time we are loading from the source.
+     * @param mediaStartTimeMs The time point of the media where we start loading.
+     * @param mediaEndTimeMs The time point of the media where we end loading.
+     * @param totalBytes The total number of bytes loaded.
+     */
     void onLoadStarted(int sourceId, String formatId, int trigger, boolean isInitialization,
         int mediaStartTimeMs, int mediaEndTimeMs, long totalBytes);
+
+    /**
+     * Respond to a successful load of data.
+     * @param sourceId The id of the source of the video.
+     */
     void onLoadCompleted(int sourceId);
   }
 
@@ -143,6 +243,11 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    * A listener for receiving notifications of timed text.
    */
   public interface TextListener {
+
+    /**
+     * Respond to text arriving (ex subtitles, captions).
+     * @param text The received text.
+     */
     public abstract void onText(String text);
   }
 
@@ -175,17 +280,50 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   public static final int TYPE_DEBUG = 3;
 
   /**
-   * These variables must be ints (instead of enums) because their values have significance in the
-   * ExoPlayer libary.
+   * This variable must be an int, not part of an enum because it has significance within the
+   * Exoplayer library.
    */
   private static final int RENDERER_BUILDING_STATE_IDLE = 1;
+
+  /**
+   * This variable must be an int, not part of an enum because it has significance within the
+   * Exoplayer library.
+   */
   private static final int RENDERER_BUILDING_STATE_BUILDING = 2;
+
+  /**
+   * This variable must be an int, not part of an enum because it has significance within the
+   * Exoplayer library.
+   */
   private static final int RENDERER_BUILDING_STATE_BUILT = 3;
+
+  /**
+   * This variable must be an int, not part of an enum because it has significance within the
+   * Exoplayer library.
+   */
   public static final int DISABLED_TRACK = -1;
+
+  /**
+   * This variable must be an int, not part of an enum because it has significance within the
+   * Exoplayer library.
+   */
   public static final int PRIMARY_TRACK = 0;
 
+  /**
+   * Responsible for loading the data from the source, processing it, and providing byte streams.
+   * By modifying the renderer builder, we can support different video formats like DASH, MP4, and
+   * SmoothStreaming.
+   */
   private final RendererBuilder rendererBuilder;
+
+  /**
+   * The underlying Exoplayer instance responsible for playing the video.
+   */
   private final ExoPlayer player;
+
+  /**
+   * Used to control the playback (ex play, pause, get duration, get elapsed time, seek to time).
+   */
   private final ObservablePlayerControl playerControl;
 
   /**
@@ -216,6 +354,9 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    */
   private boolean lastReportedPlayWhenReady;
 
+  /**
+   * The surface on which the video is rendered.
+   */
   private Surface surface;
 
   /**
@@ -248,12 +389,26 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   private int[] trackStateForType;
 
   /**
-   * Respond to text (i.e. subtitle or closed captioning) events.
+   * Respond to text (ex subtitle or closed captioning) events.
    */
   private TextListener textListener;
+
+  /**
+   * Respond to errors that occur in Exoplayer.
+   */
   private InternalErrorListener internalErrorListener;
+
+  /**
+   * Respond to changes in media format changes, load events, bandwidth estimates,
+   * and dropped frames.
+   */
   private InfoListener infoListener;
 
+  /**
+   * @param rendererBuilder Responsible for loading the data from the source, processing it,
+   *                        and providing byte streams. By modifying the renderer builder, we can
+   *                        support different video formats like DASH, MP4, and SmoothStreaming.
+   */
   public ExoplayerWrapper(RendererBuilder rendererBuilder) {
     this.rendererBuilder = rendererBuilder;
     player = ExoPlayer.Factory.newInstance(RENDERER_COUNT, 1000, 5000);
@@ -268,6 +423,10 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     trackStateForType[TYPE_TEXT] = DISABLED_TRACK;
   }
 
+  /**
+   * Returns the player control which can be used to play, pause, seek, get elapsed time, and get
+   * elapsed duration.
+   */
   public ObservablePlayerControl getPlayerControl() {
     return playerControl;
   }
@@ -290,18 +449,28 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     playbackListeners.remove(playbackListener);
   }
 
+  /**
+   * Set a listener to respond to errors within Exoplayer.
+   * @param listener The listener which responds to the error events.
+   */
   public void setInternalErrorListener(InternalErrorListener listener) {
     internalErrorListener = listener;
   }
 
+  /**
+   * Set a listener to respond to media format changes, bandwidth samples, load events, and dropped
+   * frames.
+   * @param listener Listens to media format changes, bandwidth samples, load events, and dropped
+   *                 frames.
+   */
   public void setInfoListener(InfoListener listener) {
     infoListener = listener;
   }
 
   /**
-   * Set the listener which responds to incoming text (i.e. subtitles or closed captioning).
+   * Set the listener which responds to incoming text (ex subtitles or captions).
    *
-   * @param listener
+   * @param listener The listener which can respond to text like subtitles and captions.
    */
   public void setTextListener(TextListener listener) {
     textListener = listener;
@@ -312,6 +481,9 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     pushSurfaceAndVideoTrack(false);
   }
 
+  /**
+   * Returns the surface on which the video is rendered.
+   */
   public Surface getSurface() {
     return surface;
   }
@@ -328,14 +500,27 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     pushSurfaceAndVideoTrack(true);
   }
 
+  /**
+   * Returns the name of the track at the given index.
+   * @param type The index indicating the type of video (ex {@link #TYPE_VIDEO})
+   */
   public String[] getTracks(int type) {
     return trackNames == null ? null : trackNames[type];
   }
 
+  /**
+   * Returns whether the track is {@link #PRIMARY_TRACK} or {@link #DISABLED_TRACK).
+   * @param type The index indicating the type of video (ex {@link #TYPE_VIDEO}).
+   */
   public int getStateForTrackType(int type) {
     return trackStateForType[type];
   }
 
+  /**
+   * Change the state of a track and push it onto the surface if needed.
+   * @param type The index indicating the type of video (ex {@link #TYPE_VIDEO}).
+   * @param state Either {@link #PRIMARY_TRACK} or {@link #DISABLED_TRACK).
+   */
   public void selectTrack(int type, int state) {
     if (trackStateForType[type] == state) {
       return;
@@ -364,6 +549,21 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     rendererBuilder.buildRenderers(this, builderCallback);
   }
 
+  /**
+   * Invoked with the results from a {@link RendererBuilder}.
+   *
+   * @param trackNames The names of the available tracks, indexed by {@link ExoplayerWrapper}
+   *                   TYPE_* constants. May be null if the track names are unknown. An individual
+   *                   element may be null if the track names are unknown for the corresponding
+   *                   type.
+   * @param multiTrackSources Sources capable of switching between multiple available tracks,
+   *                          indexed by {@link ExoplayerWrapper} TYPE_* constants. May be null
+   *                          if there are no types with multiple tracks. An individual element
+   *                          may be null if it does not have multiple tracks.
+   * @param renderers Renderers indexed by {@link ExoplayerWrapper} TYPE_* constants. An
+   *                  individual element may be null if there do not exist tracks of the
+   *                  corresponding type.
+   */
   public void onRenderers(String[][] trackNames,
       MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers) {
     builderCallback = null;
@@ -413,14 +613,26 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     maybeReportPlayerState();
   }
 
+  /**
+   * Set whether the player should begin as soon as it is setup.
+   * @param playWhenReady If true, playback will start as soon as the player is setup. If false, it
+   *                      must be started programmatically.
+   */
   public void setPlayWhenReady(boolean playWhenReady) {
     player.setPlayWhenReady(playWhenReady);
   }
 
+  /**
+   * Move the seek head to the given position.
+   * @param positionMs A number of milliseconds after the start of the video.
+   */
   public void seekTo(int positionMs) {
     player.seekTo(positionMs);
   }
 
+  /**
+   * When you are finished using this object, make sure to call this method.
+   */
   public void release() {
     if (builderCallback != null) {
       builderCallback.cancel();
@@ -431,7 +643,9 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     player.release();
   }
 
-
+  /**
+   * Returns the state of the Exoplayer instance.
+   */
   public int getPlaybackState() {
     if (rendererBuildingState == RENDERER_BUILDING_STATE_BUILDING) {
       return ExoPlayer.STATE_PREPARING;
@@ -446,27 +660,46 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     return playerState;
   }
 
+  /**
+   * Returns the position of the seek head in the number of
+   * milliseconds after the start of the video.
+   */
   public int getCurrentPosition() {
     return player.getCurrentPosition();
   }
 
+  /**
+   * Returns the duration of the video in milliseconds.
+   */
   public int getDuration() {
     return player.getDuration();
   }
 
+  /**
+   * Returns the number of the milliseconds of the video that has been buffered.
+   */
   public int getBufferedPercentage() {
     return player.getBufferedPercentage();
   }
 
+  /**
+   * Returns true if the video is set to start as soon as it is set up, returns false otherwise.
+   */
   public boolean getPlayWhenReady() {
     return player.getPlayWhenReady();
   }
 
-  /* package */ Looper getPlaybackLooper() {
+  /**
+   * Return the looper of the Exoplayer instance which sits and waits for messages.
+   */
+  Looper getPlaybackLooper() {
     return player.getPlaybackLooper();
   }
 
-  /* package */ Handler getMainHandler() {
+  /**
+   * Returns the handler which responds to messages.
+   */
+  Handler getMainHandler() {
     return mainHandler;
   }
 
@@ -616,6 +849,10 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     // Do nothing.
   }
 
+  /**
+   * If either playback state or the play when ready values have changed, notify all the playback
+   * listeners.
+   */
   private void maybeReportPlayerState() {
     boolean playWhenReady = player.getPlayWhenReady();
     int playbackState = getPlaybackState();

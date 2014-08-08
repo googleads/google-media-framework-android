@@ -91,18 +91,33 @@ public class LayerManager {
     }
   }
 
+  /**
+   * Returns the activity which displays the video player created by this {@link LayerManager}.
+   */
   public Activity getActivity() {
     return activity;
   }
 
+  /**
+   * Returns the {@link FrameLayout} which contains the views of the {@link Layer}s that this
+   * {@link LayerManager} manages.
+   */
   public FrameLayout getContainer() {
     return container;
   }
 
+  /**
+   * Returns the {@link ObservablePlayerControl} which can be used to control the video playback
+   * (ex. pause, play, seek).
+   */
   public ObservablePlayerControl getControl() {
     return control;
   }
 
+  /**
+   * Returns the wrapper which ties the video player to
+   * {@link com.google.android.exoplayer.ExoPlayer}.
+   */
   public ExoplayerWrapper getExoplayerWrapper() {
     return exoplayerWrapper;
   }
