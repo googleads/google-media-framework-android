@@ -17,6 +17,7 @@ The framework is currently in beta, allowing interested developers to try it out
 - Easily integrate the Google IMA SDK to enable advertising on your video content
 - Built on top of [ExoPlayer](https://github.com/google/ExoPlayer)
     - Plays [MPEG DASH](http://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP) and mp4, and easily extended to other video formats
+    - Does not yet support [HLS](http://en.wikipedia.org/wiki/HTTP_Live_Streaming)
 
 ##Getting started
 
