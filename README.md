@@ -35,6 +35,10 @@ git submodule update
 
 Finally import the project in Android Studio (or build using Gradle via ``./gradlew``).
 
+##Documentation
+
+Please see the [Javadoc](http://googleads.github.io/google-media-framework-android/docs/)
+
 ##Wiki
 For a detailed description of the project, please see the [wiki](https://github.com/googleads/google-media-framework-android/wiki).
 
