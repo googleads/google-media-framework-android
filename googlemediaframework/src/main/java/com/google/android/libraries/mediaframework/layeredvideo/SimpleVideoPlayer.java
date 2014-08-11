@@ -90,6 +90,8 @@ public class SimpleVideoPlayer {
         container,
         video,
         layers);
+
+    layerManager.getExoplayerWrapper().setTextListener(subtitleLayer);
   }
 
   /**
