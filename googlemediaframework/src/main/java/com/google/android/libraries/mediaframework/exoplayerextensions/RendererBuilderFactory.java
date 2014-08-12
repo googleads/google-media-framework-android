@@ -19,7 +19,16 @@ package com.google.android.libraries.mediaframework.exoplayerextensions;
 import android.content.Context;
 import android.net.Uri;
 
+/**
+ * Generate a renderer builder appropriate for rendering a video.
+ */
 public class RendererBuilderFactory {
+
+  /**
+   * Create a renderer builder which can build the given video.
+   * @param ctx The context (ex {@link android.app.Activity} in whicb the video has been created.
+   * @param video The video which will be played.
+   */
   public static ExoplayerWrapper.RendererBuilder createRendererBuilder(Context ctx,
                                                                        Video video) {
     switch (video.getVideoType()) {
@@ -28,7 +37,7 @@ public class RendererBuilderFactory {
             video.getUrl(),
             video.getContentId(),
             new WidevineTestMediaDrmCallback(video.getContentId()));
-      case OTHER:
+      case MP4:
         return new DefaultRendererBuilder(ctx, Uri.parse(video.getUrl()));
       default:
         return null;

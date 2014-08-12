@@ -28,11 +28,20 @@ import android.widget.FrameLayout;
  * for examples.
  */
 public interface Layer {
+
+  /**
+   * Builds and sets up the view that will be layered onto the video player. The returned view
+   * must be a {@link FrameLayout} to ensure that the {@link LayerManager} can overlay it on top
+   * of the other layers.
+   * @param layerManager The {@link LayerManager} which will contain this layer.
+   * @return The view to be layered onto the video player by the {@link LayerManager}
+   */
   public FrameLayout createView(LayerManager layerManager);
 
   /**
    * Called when a Layer's view has been displayed on the screen. Any additional setup which
    * can only be performed after the layer is displayed should be done here.
+   * @param layerManager The {@link LayerManager} which will contain this layer.
    */
   public void onLayerDisplayed(LayerManager layerManager);
 }

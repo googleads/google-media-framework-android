@@ -17,15 +17,26 @@
 package com.google.android.libraries.mediaframework.exoplayerextensions;
 
 /**
- * Encapsulates a video that can be played by Exoplayer.
+ * Represents a video that can be played by Exoplayer.
  */
 public class Video {
+
+  /**
+   * A list of available video formats which Exoplayer can play.
+   */
   public static enum VideoType {
     DASH_VOD,
-    OTHER
+    MP4
   }
 
+  /**
+   * The URL pointing to the video.
+   */
   private final String url;
+
+  /**
+   * The video format of the video.
+   */
   private final VideoType videoType;
 
   /**
@@ -33,24 +44,42 @@ public class Video {
    */
   private final String contentId;
 
+  /**
+   * @param url The URL pointing to the video.
+   * @param videoType The video format of the video.
+   */
   public Video(String url, VideoType videoType) {
     this(url, videoType, null);
   }
 
+  /**
+   * @param url The URL pointing to the video.
+   * @param videoType The video format of the video.
+   * @param contentId ID of content (for DASH).
+   */
   public Video(String url, VideoType videoType, String contentId) {
     this.url = url;
     this.videoType = videoType;
     this.contentId = contentId;
   }
 
+  /**
+   * Returns ID of content (for DASH).
+   */
   public String getContentId() {
     return contentId;
   }
 
+  /**
+   * Returns the URL pointing to the video.
+   */
   public String getUrl() {
     return url;
   }
 
+  /**
+   * Returns the video format of the video.
+   */
   public VideoType getVideoType() {
     return videoType;
   }

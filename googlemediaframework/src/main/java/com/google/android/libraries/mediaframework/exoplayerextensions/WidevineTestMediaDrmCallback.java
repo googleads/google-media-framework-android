@@ -39,11 +39,20 @@ import java.util.UUID;
 @TargetApi(18)
 public class WidevineTestMediaDrmCallback implements MediaDrmCallback {
 
+  /**
+   * The URL of the Widevine GTS.
+   */
   private static final String WIDEVINE_GTS_DEFAULT_BASE_URI =
       "http://wv-staging-proxy.appspot.com/proxy?provider=YouTube&video_id=";
 
+  /**
+   * The default Widevine GTS URL concatenated with the video ID.
+   */
   private final String defaultUri;
 
+  /**
+   * @param videoId The ID of the video to be played.
+   */
   public WidevineTestMediaDrmCallback(String videoId) {
     defaultUri = WIDEVINE_GTS_DEFAULT_BASE_URI + videoId;
   }

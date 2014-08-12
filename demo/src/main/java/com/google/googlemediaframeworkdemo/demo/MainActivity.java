@@ -29,15 +29,32 @@ import android.widget.Toast;
 
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.PlaybackControlLayer;
-import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlayer;
 import com.google.googlemediaframeworkdemo.demo.adplayer.ImaPlayer;
 
+/**
+ * Displays a list of videos and plays them when they are selected.
+ */
 public class MainActivity extends Activity implements PlaybackControlLayer.FullscreenCallback {
 
+  /**
+   * The player which will be used to play the content videos and the ads.
+   */
   private ImaPlayer imaPlayer;
+
+  /**
+   * The {@link android.widget.FrameLayout} that will contain the video player.
+   */
   private FrameLayout videoPlayerContainer;
+
+  /**
+   * The list of the videos.
+   */
   private ListView videoListView;
 
+  /**
+   * Set up the view and populate the list of the videos.
+   * @param savedInstanceState The bundle which contains saved state - it is ignored.
+   */
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -119,7 +136,7 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
     Drawable logo = res.getDrawable(R.drawable.gmf_icon);
     imaPlayer.setLogoImage(logo);
 
-    // Uncomment the following lines to set the color of the player's top bar, bottom bar, and
+    // Uncomment the following lines to set the color of the player's top chrome, bottom chrome, and
     // background to be a blue color.
 
     // int sampleChromeColor = res.getColor(R.color.sample_chrome_color);
@@ -187,6 +204,10 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
     imaPlayer.play();
   }
 
+  /**
+   * Create a list of videos and their associated metadata.
+   * @return A list of videos (and their titles, content URLs, media types, content ID, and ad tag).
+   */
   public VideoListItem[] getVideoListItems() {
     return new VideoListItem[] {
         new VideoListItem("No ads (DASH)",
@@ -230,7 +251,7 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
             "lU0&cust_params=gmf_format%3Dstd%2Cskip"),
         new VideoListItem("No ads (mp4)",
             new Video("http://rmcdn.2mdn.net/MotifFiles/html/1248596/android_1330378998288.mp4",
-                Video.VideoType.OTHER),
+                Video.VideoType.MP4),
             null)
     };
   }
@@ -252,11 +273,33 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
     videoListView.setVisibility(View.VISIBLE);
   }
 
+  /**
+   * Simple class to bundle together the title, content video, and ad tag associated with a video.
+   */
   public static class VideoListItem {
+
+    /**
+     * The title of the video.
+     */
     public final String title;
+
+    /**
+     * The actual content video (contains its URL, media type - either DASH or mp4,
+     * and an optional media type).
+     */
     public final Video video;
+
+    /**
+     * The URL of the VAST document which represents the ad.
+     */
     public final String adUrl;
 
+    /**
+     * @param title The title of the video.
+     * @param video The actual content video (contains its URL, media type - either DASH or mp4,
+     *                  and an optional media type).
+     * @param adUrl The URL of the VAST document which represents the ad.
+     */
     public VideoListItem(String title, Video video, String adUrl) {
       this.title = title;
       this.video = video;

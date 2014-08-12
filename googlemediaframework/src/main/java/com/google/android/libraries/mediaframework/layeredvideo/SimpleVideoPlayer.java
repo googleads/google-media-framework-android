@@ -46,13 +46,13 @@ public class SimpleVideoPlayer {
   private final LayerManager layerManager;
 
   /**
-   * The customizable UI for playback control (i.e. pause/play, fullscreen, seeking, title, custom
-   * actions).
+   * The customizable view for playback control. It handles pause/play, fullscreen, seeking,
+   * title, and action buttons.
    */
   private final PlaybackControlLayer playbackControlLayer;
 
   /**
-   * Dislayed on bottom center of video player.
+   * Displays subtitles at bottom center of video player.
    */
   private final SubtitleLayer subtitleLayer;
 
@@ -61,6 +61,13 @@ public class SimpleVideoPlayer {
    */
   private final VideoSurfaceLayer videoSurfaceLayer;
 
+  /**
+   * @param activity The activity that will contain the video player.
+   * @param container The {@link FrameLayout} which will contain the video player.
+   * @param video The video that should be played.
+   * @param videoTitle The title of the video (displayed on the left of the top chrome).
+   * @param autoplay Whether the video should start playing immediately.
+   */
   public SimpleVideoPlayer(Activity activity,
                            FrameLayout container,
                            Video video,
@@ -69,6 +76,15 @@ public class SimpleVideoPlayer {
     this(activity, container, video, videoTitle, autoplay, null);
   }
 
+  /**
+   * @param activity The activity that will contain the video player.
+   * @param container The {@link FrameLayout} which will contain the video player.
+   * @param video The video that should be played.
+   * @param videoTitle The title of the video (displayed on the left of the top chrome).
+   * @param autoplay Whether the video should start playing immediately.
+   * @param fullscreenCallback The callback which gets triggered when the player enters or leaves
+   *                           fullscreen mode.
+   */
   public SimpleVideoPlayer(Activity activity,
                            FrameLayout container,
                            Video video,
@@ -110,39 +126,73 @@ public class SimpleVideoPlayer {
     playbackControlLayer.addActionButton(activity, icon, contentDescription, onClickListener);
   }
 
+  /**
+   * Set a listener which reacts to state changes, video size changes, and errors.
+   * @param listener Listens to playback events.
+   */
   public void addPlaybackListener(ExoplayerWrapper.PlaybackListener listener) {
     layerManager.getExoplayerWrapper().addListener(listener);
   }
 
+  /**
+   * Hides the seek bar thumb and prevents the user from seeking to different time points in the
+   * video.
+   */
   public void disableSeeking() {
     playbackControlLayer.disableSeeking();
   }
 
+  /**
+   * Makes the seek bar thumb visible and allows the user to seek to different time points in the
+   * video.
+   */
   public void enableSeeking() {
     playbackControlLayer.enableSeeking();
   }
 
+  /**
+   * Returns the current playback position in milliseconds.
+   */
   public int getCurrentPosition() {
     return layerManager.getControl().getCurrentPosition();
   }
 
+  /**
+   * Returns the duration of the track in milliseconds or
+   * {@link com.google.android.exoplayer.ExoPlayer#UNKNOWN_TIME} if the duration is unknown.
+   */
   public int getDuration() {
     return layerManager.getControl().getDuration();
   }
 
+  /**
+   * Fades the playback control layer out and then removes it from the {@link LayerManager}'s
+   * container.
+   */
   public void hide() {
     playbackControlLayer.hide();
     subtitleLayer.setVisibility(View.GONE);
   }
 
+  /**
+   * Hides the top chrome (which displays the logo, title, and action buttons).
+   */
   public void hideTopChrome() {
     playbackControlLayer.hideTopChrome();
   }
 
+  /**
+   * Returns whether the player is currently in fullscreen mode.
+   */
   public boolean isFullscreen() {
     return playbackControlLayer.isFullscreen();
   }
 
+  /**
+   * Make the player enter or leave fullscreen mode.
+   * @param shouldBeFullscreen If true, the player is put into fullscreen mode. If false, the player
+   *                           leaves fullscreen mode.
+   */
   public void setFullscreen(boolean shouldBeFullscreen) {
     playbackControlLayer.setFullscreen(shouldBeFullscreen);
   }
@@ -165,6 +215,9 @@ public class SimpleVideoPlayer {
     videoSurfaceLayer.moveSurfaceToForeground();
   }
 
+  /**
+   * Pause video playback.
+   */
   public void pause() {
     // Set the autoplay for the video surface layer in case the surface hasn't been created yet.
     // This way, when the surface is created, it won't start playing.
@@ -173,6 +226,9 @@ public class SimpleVideoPlayer {
     layerManager.getControl().pause();
   }
 
+  /**
+   * Resume video playback.
+   */
   public void play() {
     // Set the autoplay for the video surface layer in case the surface hasn't been created yet.
     // This way, when the surface is created, it will automatically start playing.
@@ -181,47 +237,96 @@ public class SimpleVideoPlayer {
     layerManager.getControl().start();
   }
 
+  /**
+   * Sets the color of the top chrome, bottom chrome, and background.
+   * @param color a color derived from the @{link Color} class
+   *              (ex. {@link android.graphics.Color#RED}).
+   */
   public void setChromeColor(int color) {
     playbackControlLayer.setChromeColor(color);
   }
 
+  /**
+   * Set the callback which will be called when the player enters and leaves fullscreen mode.
+   * @param fullscreenCallback The callback should hide other views in the activity when the player
+   *                           enters fullscreen mode and show other views when the player leaves
+   *                           fullscreen mode.
+   */
   public void setFullscreenCallback(PlaybackControlLayer.FullscreenCallback fullscreenCallback) {
     playbackControlLayer.setFullscreenCallback(fullscreenCallback);
   }
 
+  /**
+   * Set the logo with appears in the left of the top chrome.
+   * @param logo The drawable which will be the logo.
+   */
   public void setLogoImage(Drawable logo) {
     playbackControlLayer.setLogoImageView(logo);
   }
 
+  /**
+   * Sets the color of the buttons and seek bar.
+   * @param color a color derived from the @{link Color} class
+   *              (ex. {@link android.graphics.Color#RED}).
+   */
   public void setPlaybackControlColor(int color) {
     playbackControlLayer.setControlColor(color);
   }
 
+  /**
+   * Sets the color of the seekbar.
+   * @param color a color derived from the @{link Color} class
+   *              (ex. {@link android.graphics.Color#RED}).
+   */
   public void setSeekbarColor(int color) {
     playbackControlLayer.setSeekbarColor(color);
   }
 
+  /**
+   * Sets the color of the text views
+   * @param color a color derived from the @{link Color} class
+   *              (ex. {@link android.graphics.Color#RED}).
+   */
   public void setTextColor(int color) {
     playbackControlLayer.setTextColor(color);
   }
 
+  /**
+   * Set the title of the video in the left of the top chrome (to the right of the logo).
+   * @param title The video title. If it is too long, it will be ellipsized.
+   */
   public void setVideoTitle (String title) {
     playbackControlLayer.setVideoTitle(title);
   }
 
+  /**
+   * Returns whether the player should be playing (based on whether the user has
+   * tapped pause or play). This can be used by other classes to look at the playback control
+   * layer's play/pause state and force the player to play or pause accordingly.
+   */
   public boolean shouldBePlaying() {
     return playbackControlLayer.shouldBePlaying();
   }
 
+  /**
+   * Add the playback control layer back to the container. It will disappear when the user taps
+   * the screen.
+   */
   public void show() {
     playbackControlLayer.show();
     subtitleLayer.setVisibility(View.VISIBLE);
   }
 
+  /**
+   * Shows the top chrome (which displays the logo, title, and action buttons).
+   */
   public void showTopChrome() {
     playbackControlLayer.showTopChrome();
   }
 
+  /**
+   * When you are finished using this {@link SimpleVideoPlayer}, make sure to call this method.
+   */
   public void release() {
     videoSurfaceLayer.release();
     layerManager.release();

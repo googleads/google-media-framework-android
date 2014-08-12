@@ -80,8 +80,16 @@ public class ImaPlayer {
    */
   private FrameLayout adUiContainer;
 
+  /**
+   * Responsible for requesting the ad and creating the
+   * {@link com.google.ads.interactivemedia.v3.api.AdsManager}
+   */
   private AdsLoader adsLoader;
 
+
+  /**
+   * Responsible for containing listeners for processing the elements of the ad.
+   */
   private AdsManager adsManager;
 
   /**
@@ -124,11 +132,21 @@ public class ImaPlayer {
    */
   private final ExoplayerWrapper.PlaybackListener playbackListener
       = new ExoplayerWrapper.PlaybackListener() {
+
+    /**
+     * We don't respond to errors.
+     * @param e The error.
+     */
     @Override
     public void onError(Exception e) {
 
     }
 
+    /**
+     * We notify all callbacks when the ad ends.
+     * @param playWhenReady Whether the video should play as soon as it is loaded.
+     * @param playbackState The state of the Exoplayer instance.
+     */
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
       if (playbackState == ExoPlayer.STATE_ENDED) {
@@ -138,6 +156,11 @@ public class ImaPlayer {
       }
     }
 
+    /**
+     * We don't respond to size changes.
+     * @param width The new width of the player.
+     * @param height The new height of the player.
+     */
     @Override
     public void onVideoSizeChanged(int width, int height) {
 
@@ -275,6 +298,16 @@ public class ImaPlayer {
     }
   };
 
+  /**
+   * @param activity The activity that will contain the video player.
+   * @param container The {@link FrameLayout} which will contain the video player.
+   * @param video The video that should be played.
+   * @param videoTitle The title of the video (displayed on the left of the top chrome).
+   * @param sdkSettings The settings that should be used to configure the IMA SDK.
+   * @param adTagUrl The URL containing the VAST document of the ad.
+   * @param fullscreenCallback The callback that should be triggered when the player enters or
+   *                           leaves fullscreen.
+   */
   public ImaPlayer(Activity activity,
                    FrameLayout container,
                    Video video,
@@ -321,6 +354,14 @@ public class ImaPlayer {
     setFullscreenCallback(fullscreenCallback);
   }
 
+  /**
+   * @param activity The activity that will contain the video player.
+   * @param container The {@link FrameLayout} which will contain the video player.
+   * @param video The video that should be played.
+   * @param videoTitle The title of the video (displayed on the left of the top chrome).
+   * @param sdkSettings The settings that should be used to configure the IMA SDK.
+   * @param adTagUrl The URL containing the VAST document of the ad.
+   */
   public ImaPlayer(Activity activity,
                    FrameLayout container,
                    Video video,
@@ -330,11 +371,18 @@ public class ImaPlayer {
     this(activity, container, video, videoTitle, sdkSettings, adTagUrl, null);
   }
 
+  /**
+   * @param activity The activity that will contain the video player.
+   * @param container The {@link FrameLayout} which will contain the video player.
+   * @param video The video that should be played.
+   * @param videoTitle The title of the video (displayed on the left of the top chrome).
+   * @param adTagUrl The URL containing the VAST document of the ad.
+   */
   public ImaPlayer(Activity activity,
-                 FrameLayout container,
-                 Video video,
-                 String videoTitle,
-                 String adTagUrl) {
+                   FrameLayout container,
+                   Video video,
+                   String videoTitle,
+                   String adTagUrl) {
     this(activity,
         container,
         video,
@@ -343,6 +391,12 @@ public class ImaPlayer {
         adTagUrl);
   }
 
+  /**
+   * @param activity The activity that will contain the video player.
+   * @param container The {@link FrameLayout} which will contain the video player.
+   * @param video The video that should be played.
+   * @param videoTitle The title of the video (displayed on the left of the top chrome).
+   */
   public ImaPlayer(Activity activity,
                    FrameLayout container,
                    Video video,
@@ -355,6 +409,11 @@ public class ImaPlayer {
         null);
   }
 
+  /**
+   * @param activity The activity that will contain the video player.
+   * @param container The {@link FrameLayout} which will contain the video player.
+   * @param video The video that should be played.
+   */
   public ImaPlayer(Activity activity,
                    FrameLayout container,
                    Video video) {
@@ -366,6 +425,9 @@ public class ImaPlayer {
         null);
   }
 
+  /**
+   * Pause video playback.
+   */
   public void pause() {
     if (adPlayer != null) {
       adPlayer.pause();
@@ -373,6 +435,9 @@ public class ImaPlayer {
     contentPlayer.pause();
   }
 
+  /**
+   * Resume video playback.
+   */
   public void play() {
     if (adTagUrl != null) {
       requestAd();
@@ -381,24 +446,54 @@ public class ImaPlayer {
     }
   }
 
-  public void setLogoImage(Drawable logoImage) {
-    contentPlayer.setLogoImage(logoImage);
+  /**
+   * Set the logo with appears in the left of the top chrome.
+   * @param logo The drawable which will be the logo.
+   */
+  public void setLogoImage(Drawable logo) {
+    contentPlayer.setLogoImage(logo);
   }
 
-  public void setChromeColor(int chromeColor) {
-    contentPlayer.setChromeColor(chromeColor);
+  /**
+   * Sets the color of the top chrome, bottom chrome, and background.
+   * @param color a color derived from the @{link Color} class
+   *              (ex. {@link android.graphics.Color#RED}).
+   */
+  public void setChromeColor(int color) {
+    contentPlayer.setChromeColor(color);
   }
 
-  public void setPlaybackControlColor(int controlColor) {
-    contentPlayer.setPlaybackControlColor(controlColor);
+  /**
+   * Sets the color of the buttons and seek bar.
+   * @param color a color derived from the @{link Color} class
+   *              (ex. {@link android.graphics.Color#RED}).
+   */
+  public void setPlaybackControlColor(int color) {
+    contentPlayer.setPlaybackControlColor(color);
   }
 
+  /**
+   * Creates a button to put in the top right of the video player.
+   *
+   * @param icon The image of the action (ex. trash can).
+   * @param contentDescription The text description this action. This is used in case the
+   *                           action buttons do not fit in the video player. If so, an overflow
+   *                           button will appear and, when clicked, it will display a list of the
+   *                           content descriptions for each action.
+   * @param onClickListener The handler for when the action is triggered.
+   */
   public void addActionButton(Drawable icon,
                               String contentDescription,
                               View.OnClickListener onClickListener) {
     contentPlayer.addActionButton(icon, contentDescription, onClickListener);
   }
 
+  /**
+   * Set the callback which will be called when the player enters and leaves fullscreen mode.
+   * @param fullscreenCallback The callback should hide other views in the activity when the player
+   *                           enters fullscreen mode and show other views when the player leaves
+   *                           fullscreen mode.
+   */
   public void setFullscreenCallback(
       final PlaybackControlLayer.FullscreenCallback fullscreenCallback) {
     this.fullscreenCallback = new PlaybackControlLayer.FullscreenCallback() {
@@ -426,6 +521,9 @@ public class ImaPlayer {
     }
   }
 
+  /**
+   * When you are finished using this {@link ImaPlayer}, make sure to call this method.
+   */
   public void release() {
     if (adPlayer != null) {
       adPlayer.release();
@@ -433,6 +531,9 @@ public class ImaPlayer {
     contentPlayer.release();
   }
 
+  /**
+   * Create a {@link SimpleVideoPlayer} to play an ad and display it.
+   */
   private void createAdPlayer(){
     // Kill any existing ad player.
     destroyAdPlayer();
@@ -451,7 +552,7 @@ public class ImaPlayer {
     container.addView(adUiContainer);
 
 
-    Video adVideo = new Video(adTagUrl.toString(), Video.VideoType.OTHER);
+    Video adVideo = new Video(adTagUrl.toString(), Video.VideoType.MP4);
     adPlayer = new SimpleVideoPlayer(activity,
         adPlayerContainer,
         adVideo,
@@ -476,6 +577,9 @@ public class ImaPlayer {
     }
   }
 
+  /**
+   * Destroy the {@link SimpleVideoPlayer} responsible for playing the ad and rmeove it.
+   */
   private void destroyAdPlayer(){
     if(adPlayerContainer != null){
       container.removeView(adPlayerContainer);
@@ -492,16 +596,25 @@ public class ImaPlayer {
     setFullscreenCallback(fullscreenCallback);
   }
 
+  /**
+   * Pause and hide the content player.
+   */
   private void hideContentPlayer(){
     contentPlayer.pause();
     contentPlayer.hide();
   }
 
+  /**
+   * Show the content player and start playing again.
+   */
   private void showContentPlayer(){
     contentPlayer.show();
     contentPlayer.play();
   }
 
+  /**
+   * Pause the content player and notify the ad callbacks that the content has paused.
+   */
   private void pauseContent(){
     hideContentPlayer();
     for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
@@ -509,6 +622,9 @@ public class ImaPlayer {
     }
   }
 
+  /**
+   * Resume the content and notify the ad callbacks that the content has resumed.
+   */
   private void resumeContent(){
     destroyAdPlayer();
     showContentPlayer();
@@ -517,6 +633,11 @@ public class ImaPlayer {
     }
   }
 
+  /**
+   * Create an ads request which will request the VAST document with the given ad tag URL.
+   * @param tagUrl URL pointing to a VAST document of an ad.
+   * @return a request for the VAST document.
+   */
   private AdsRequest buildAdsRequest(String tagUrl) {
     AdDisplayContainer adDisplayContainer = ImaSdkFactory.getInstance().createAdDisplayContainer();
     adDisplayContainer.setPlayer(videoAdPlayer);
@@ -528,6 +649,10 @@ public class ImaPlayer {
     return request;
   }
 
+  /**
+   * Make the ads loader request an ad with the ad tag URL which this {@link ImaPlayer} was
+   * created with
+   */
   private void requestAd() {
     adsLoader.requestAds(buildAdsRequest(adTagUrl.toString()));
   }

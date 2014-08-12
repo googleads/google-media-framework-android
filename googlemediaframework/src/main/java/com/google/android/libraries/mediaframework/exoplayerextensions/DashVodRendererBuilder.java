@@ -66,15 +66,43 @@ import java.util.ArrayList;
 public class DashVodRendererBuilder implements ExoplayerWrapper.RendererBuilder,
     ManifestCallback<MediaPresentationDescription> {
 
+  /**
+   * The length of each buffer in the pool.
+   */
   private static final int BUFFER_SEGMENT_SIZE = 64 * 1024;
+
+  /**
+   * The number of video segments in each buffer.
+   */
   private static final int VIDEO_BUFFER_SEGMENTS = 200;
+
+  /**
+   * The number of audio segments in each buffer.
+   */
   private static final int AUDIO_BUFFER_SEGMENTS = 60;
 
   /**
-   * Widevine security levels.
+   * Constant indicating that the Widevine security level is unknown. This constant must be an int
+   * instead of part of an enum because it has significance in the Exoplayer library. The Widevine
+   * security levels are documented here:
+   * https://source.android.com/devices/drm.html#security
    */
   private static final int SECURITY_LEVEL_UNKNOWN = -1;
+
+  /**
+   * Constant indicating that first Widevine security level. This constant must be an int
+   * instead of part of an enum because it has significance in the Exoplayer library. The Widevine
+   * security levels are documented here:
+   * https://source.android.com/devices/drm.html#security
+   */
   private static final int SECURITY_LEVEL_1 = 1;
+
+  /**
+   * Constant indicating that third Widevine security level. This constant must be an int
+   * instead of part of an enum because it has significance in the Exoplayer library. The Widevine
+   * security levels are documented here:
+   * https://source.android.com/devices/drm.html#security
+   */
   private static final int SECURITY_LEVEL_3 = 3;
 
   /**
@@ -89,14 +117,43 @@ public class DashVodRendererBuilder implements ExoplayerWrapper.RendererBuilder,
    */
   public static final int MAX_DROPPED_FRAME_COUNT_TO_NOTIFY = 50;
 
+  /**
+   * A User-Agent string that should be sent with HTTP requests.
+   */
   private final String userAgent;
+
+  /**
+   * The URL of the video that this {@link ExoplayerWrapper.RendererBuilder} will build.
+   */
   private final String url;
+
+  /**
+   * The ID of the DASH video.
+   */
   private final String contentId;
+
+  /**
+   * Performs {@link android.media.MediaDrm} key and provisioning requests.
+   */
   private final MediaDrmCallback drmCallback;
 
+  /**
+   * Contains the {@link com.google.android.exoplayer.ExoPlayer} which will use this renderer
+   * builder to play a video.
+   */
   private ExoplayerWrapper player;
+
+  /**
+   * The callback that will be executed when this renderer has built successfully.
+   */
   private ExoplayerWrapper.RendererBuilderCallback callback;
 
+  /**
+   * @param userAgent A User-Agent string that should be sent with HTTP requests.
+   * @param url The URL of the video that this {@link ExoplayerWrapper.RendererBuilder} will build.
+   * @param contentId The ID of the DASH video.
+   * @param drmCallback Performs {@link android.media.MediaDrm} key and provisioning requests.
+   */
   public DashVodRendererBuilder(String userAgent,
                                 String url,
                                 String contentId,
@@ -292,6 +349,7 @@ public class DashVodRendererBuilder implements ExoplayerWrapper.RendererBuilder,
   /**
    * Iterate through each of the representations and return an array of all representations which
    * are standard definition (less than 720 x 1280).
+   * @param representations A set of representations which include the format widths and heights.
    */
   private Representation[] getSdRepresentations(Representation[] representations) {
     ArrayList<Representation> sdRepresentations = new ArrayList<Representation>();
@@ -305,12 +363,21 @@ public class DashVodRendererBuilder implements ExoplayerWrapper.RendererBuilder,
     return sdRepresentationArray;
   }
 
+  /**
+   * Adds compatibility for API level 18.
+   */
   @TargetApi(18)
   private static class V18Compat {
 
     /**
+     *
      * Return a pair where the first element is the DRM session manager and the second element is
      * whether the security level is 1.
+     *
+     * @param player The {@link ExoplayerWrapper} which will receive this renderer builder and use
+     *               it to play the video.
+     * @param drmCallback Performs {@link android.media.MediaDrm} key and provisioning requests.
+     * @throws UnsupportedSchemeException
      */
     public static Pair<DrmSessionManager, Boolean> getDrmSessionManagerData(ExoplayerWrapper player,
         MediaDrmCallback drmCallback) throws UnsupportedSchemeException {
@@ -324,6 +391,14 @@ public class DashVodRendererBuilder implements ExoplayerWrapper.RendererBuilder,
           getWidevineSecurityLevel(streamingDrmSessionManager) == SECURITY_LEVEL_1);
     }
 
+    /**
+     * Reads the security level string from the session manager and returns the appropriate constant
+     * - one of {@link #SECURITY_LEVEL_1}, {@link #SECURITY_LEVEL_3},
+     * or {@link #SECURITY_LEVEL_UNKNOWN}. The Widevine security levels are documented here
+     * https://source.android.com/devices/drm.html#security
+     *
+     * @param sessionManager Manages the DRM session.
+     */
     private static int getWidevineSecurityLevel(StreamingDrmSessionManager sessionManager) {
       String securityLevelProperty = sessionManager.getPropertyString("securityLevel");
       return securityLevelProperty.equals("L1") ? SECURITY_LEVEL_1 : securityLevelProperty

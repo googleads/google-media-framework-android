@@ -47,9 +47,23 @@ public class DefaultRendererBuilder implements ExoplayerWrapper.RendererBuilder 
    * of onDroppedFrames(int, long).
    */
   public static final int MAX_DROPPED_FRAME_COUNT_TO_NOTIFY = 50;
+
+  /**
+   * The context (ex {@link android.app.Activity}) in which this
+   * {@link ExoplayerWrapper.RendererBuilder} was created.
+   */
   private final Context context;
+
+  /**
+   * The URL of the video that this {@link ExoplayerWrapper.RendererBuilder} will build.
+   */
   private final Uri uri;
 
+  /**
+   * @param context The context (ex {@link android.app.Activity}) in which this
+   *                    {@link ExoplayerWrapper.RendererBuilder} was created.
+   * @param uri The URL of the video that this {@link ExoplayerWrapper.RendererBuilder} will build.
+   */
   public DefaultRendererBuilder(Context context, Uri uri) {
     this.context = context;
     this.uri = uri;

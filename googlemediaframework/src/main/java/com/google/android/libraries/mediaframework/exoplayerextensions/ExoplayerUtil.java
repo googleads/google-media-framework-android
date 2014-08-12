@@ -41,12 +41,25 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Utility methods for the exoplayer extension.
+ * Utility methods for the Exoplayer extension.
  */
 public class ExoplayerUtil {
 
+
+  /**
+   * The UUID of the Widevine DRM scheme.
+   */
   public static final UUID WIDEVINE_UUID = new UUID(0xEDEF8BA979D64ACEL, 0xA3C827DCD51D21EDL);
 
+  /**
+   * Generate a User-Agent string that should be sent with HTTP requests. A User-Agent string is
+   * used to provide information such as the operating system and version to a server when it makes
+   * a request. The server can use this information to select the version of the content which is
+   * best suited for your system. For instance, a server could use the User-Agent string provided by
+   * this app to ensure that it returns a video format that works on Android.
+   * @param context The context (ex {@link android.app.Activity} which is calling this method.
+   * @return The User-Agent string.
+   */
   public static String getUserAgent(Context context) {
     String versionName;
     try {
@@ -90,6 +103,12 @@ public class ExoplayerUtil {
     }
   }
 
+  /**
+   * Write the contents of an input stream into a byte array.
+   * @param inputStream The stream to convert into a byte array.
+   * @return A byte array containing the contents of the input stream.
+   * @throws IOException
+   */
   private static byte[] convertInputStreamToByteArray(InputStream inputStream) throws IOException {
     byte[] bytes = null;
     ByteArrayOutputStream bos = new ByteArrayOutputStream();

@@ -24,6 +24,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 
+/**
+ * Contains utility functions which are used by a number of other classes.
+ */
 public class Util {
 
   /**
