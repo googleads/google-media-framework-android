@@ -1023,13 +1023,6 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
     topChrome.setBackgroundColor(chromeColor);
     bottomChrome.setBackgroundColor(chromeColor);
-    playbackControlRootView.setBackgroundColor(
-        Color.argb(60,
-            Color.red(chromeColor),
-            Color.green(chromeColor),
-            Color.blue(chromeColor)
-        )
-    );
   }
 
   /**
