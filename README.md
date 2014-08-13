@@ -23,17 +23,11 @@ The framework is currently in beta, allowing interested developers to try it out
 
 Clone the repository
 
-```git clone https://github.com/googleads/google-media-framework-android.git GoogleMediaFramework```
-
-Then navigate to the directory and set up the ExoPlayer submodule.
-
 ```
-cd GoogleMediaFramework
-git submodule init
-git submodule update
+git clone https://github.com/googleads/google-media-framework-android.git GoogleMediaFramework
 ```
 
-Finally import the project in Android Studio (or build using Gradle via ``./gradlew``).
+Then import the project in Android Studio (or build using Gradle via `./gradlew`).
 
 ##Documentation
 
@@ -50,6 +44,19 @@ If you have questions about the framework, you can ask them in our [google group
 
 ##How do I contribute?
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
+
+##I want to use a newer version of Exoplayer
+The Exoplayer library is located in the `libs` folder of the `googlemediaframework` module of this project as `exoplayer.jar`. If you want to update Exoplayer, you need to replace this with a new JAR.
+
+To make a new JAR, please do the following:
+
+1) Clone [Exoplayer](https://github.com/google/ExoPlayer).
+
+2) Run the `./gradlew jarRelease` command in the Exoplayer project.
+
+3) Look in the `build` folder of the `library` module, there should be a file called `library.jar`. Again, this must be done in the Exoplayer project.
+
+Then, rename `library.jar` to `exoplayer.jar` and put it into the `libs` folder of the `googlemediaframework` module of this project.
 
 ##Requirements
 
