@@ -150,6 +150,7 @@ public class ImaPlayer {
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
       if (playbackState == ExoPlayer.STATE_ENDED) {
+        adsLoader.contentComplete();
         for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
           callback.onEnded();
         }
@@ -528,6 +529,7 @@ public class ImaPlayer {
     if (adPlayer != null) {
       adPlayer.release();
     }
+    adsLoader.contentComplete();
     contentPlayer.release();
   }
 
