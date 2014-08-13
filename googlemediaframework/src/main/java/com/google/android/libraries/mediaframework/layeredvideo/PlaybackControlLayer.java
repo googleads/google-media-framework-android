@@ -176,12 +176,12 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   /**
    * When the playback controls are shown, hide them after DEFAULT_TIMEOUT_MS milliseconds.
    */
-  private static final int DEFAULT_TIMEOUT_MS = 3000;
+  private static final int DEFAULT_TIMEOUT_MS = 2000;
 
   /**
    * When the controls are hidden, they fade out in FADE_OUT_DURATION_MS milliseconds.
    */
-  private static final int FADE_OUT_DURATION_MS = 200;
+  private static final int FADE_OUT_DURATION_MS = 400;
 
   /**
    * Used by the {@link MessageHandler} to indicate that media controls should fade out.
