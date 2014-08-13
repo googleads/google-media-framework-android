@@ -1,5 +1,13 @@
 # GoogleMediaFramework CHANGELOG
 
+## 0.1.2
+- UI for ad player
+- Simplified API
+- Cleaner code
+- Bug fixes
+- Javadoc
+- Replaced Exoplayer submodule with JAR
+
 ## 0.1.1
 
 - GMF Icon, default color scheme in sample app, and minor UI tweaks
