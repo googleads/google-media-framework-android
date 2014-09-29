@@ -646,8 +646,8 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     handler.sendEmptyMessage(SHOW_PROGRESS);
 
     Message msg = handler.obtainMessage(FADE_OUT);
+    handler.removeMessages(FADE_OUT);
     if (timeout > 0) {
-      handler.removeMessages(FADE_OUT);
       handler.sendMessageDelayed(msg, timeout);
     }
   }
