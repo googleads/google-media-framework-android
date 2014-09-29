@@ -130,7 +130,7 @@ public class ImaPlayer {
   /**
    * Notifies callbacks when the ad finishes.
    */
-  private final ExoplayerWrapper.PlaybackListener playbackListener
+  private final ExoplayerWrapper.PlaybackListener adPlaybackListener
       = new ExoplayerWrapper.PlaybackListener() {
 
     /**
@@ -150,7 +150,6 @@ public class ImaPlayer {
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
       if (playbackState == ExoPlayer.STATE_ENDED) {
-        adsLoader.contentComplete();
         for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
           callback.onEnded();
         }
@@ -167,6 +166,44 @@ public class ImaPlayer {
 
     }
   };
+
+    /**
+     * Listener for the content player
+     */
+    private final ExoplayerWrapper.PlaybackListener contentPlaybackListener
+            = new ExoplayerWrapper.PlaybackListener() {
+
+      /**
+       * We don't respond to errors.
+       * @param e The error.
+       */
+      @Override
+      public void onError(Exception e) {
+
+      }
+
+      /**
+       * We notify the adLoader when the content has ended so it knows to play postroll ads.
+       * @param playWhenReady Whether the video should play as soon as it is loaded.
+       * @param playbackState The state of the Exoplayer instance.
+       */
+      @Override
+      public void onStateChanged(boolean playWhenReady, int playbackState) {
+        if (playbackState == ExoPlayer.STATE_ENDED) {
+          adsLoader.contentComplete();
+        }
+      }
+
+      /**
+       * We don't respond to size changes.
+       * @param width The new width of the player.
+       * @param height The new height of the player.
+       */
+      @Override
+      public void onVideoSizeChanged(int width, int height) {
+
+      }
+    };
 
   /**
    * Sets up ads manager, responds to ad errors, and handles ad state changes.
@@ -336,6 +373,8 @@ public class ImaPlayer {
         video,
         videoTitle,
         autoplay);
+
+    contentPlayer.addPlaybackListener(contentPlaybackListener);
 
     // Move the content player's surface layer to the background so that the ad player's surface
     // layer can be overlaid on top of it during ad playback.
@@ -562,7 +601,7 @@ public class ImaPlayer {
         true,
         fullscreenCallback);
 
-    adPlayer.addPlaybackListener(playbackListener);
+    adPlayer.addPlaybackListener(adPlaybackListener);
 
     // Move the ad player's surface layer to the foreground so that it is overlaid on the content
     // player's surface layer (which is in the background).
