@@ -599,6 +599,7 @@ public class ImaPlayer {
         adVideo,
         "",
         true,
+        0,
         fullscreenCallback);
 
     adPlayer.addPlaybackListener(adPlaybackListener);
