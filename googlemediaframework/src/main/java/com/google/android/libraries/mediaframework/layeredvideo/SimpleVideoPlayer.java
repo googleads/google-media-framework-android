@@ -73,7 +73,7 @@ public class SimpleVideoPlayer {
                            Video video,
                            String videoTitle,
                            boolean autoplay) {
-    this(activity, container, video, videoTitle, autoplay, null);
+    this(activity, container, video, videoTitle, autoplay, 0, null);
   }
 
   /**
@@ -90,6 +90,7 @@ public class SimpleVideoPlayer {
                            Video video,
                            String videoTitle,
                            boolean autoplay,
+                           int startPostitionMs,
                            PlaybackControlLayer.FullscreenCallback fullscreenCallback) {
     this.activity = activity;
 
@@ -108,6 +109,10 @@ public class SimpleVideoPlayer {
         layers);
 
     layerManager.getExoplayerWrapper().setTextListener(subtitleLayer);
+
+    if (startPostitionMs > 0) {
+      layerManager.getExoplayerWrapper().seekTo(startPostitionMs);
+    }
   }
 
   /**
