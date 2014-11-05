@@ -69,5 +69,5 @@ Then, rename `library.jar` to `exoplayer.jar` and put it into the `libs` folder 
     - Build tools version 19.1.0 (installed via SDK manager)
     - Google Play Services version 4.3.23 or higher (installed via SDK manager)
     - Google Repository (installed via SDK manager)
-  - ExoPlayer (added as a git submodule)
+  - ExoPlayer (Included as a jar file)
 
