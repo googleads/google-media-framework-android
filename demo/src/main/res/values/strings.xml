@@ -17,6 +17,7 @@ limitations under the License.
 
 <resources>
 
+    <string name="app_name">Google Media Framework Demo</string>
     <string name="option1">Option 1</string>
     <string name="option2">Option 2</string>
     <string name="option3">Option 3</string>

@@ -16,6 +16,7 @@
 
 package com.google.googlemediaframeworkdemo.demo;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
@@ -62,7 +63,10 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
     View view = getLayoutInflater().inflate(R.layout.activity_main, null);
 
     // Get rid of the action bar.
-    getActionBar().hide();
+    ActionBar actionBar = getActionBar();
+    if (actionBar != null) {
+      actionBar.hide();
+    }
 
     // This container will be the video player.
     videoPlayerContainer = (FrameLayout) view.findViewById(R.id.video_frame);

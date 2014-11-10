@@ -16,7 +16,12 @@ limitations under the License.
 -->
 
 <resources>
-    <string name="app_name">Google Media Framework</string>
-    <string name="select_an_action">Select an action...</string>
+    <string name="select_an_action">Select an action&#8230;</string>
     <string name="overflow">Overflow</string>
+    <string name="fullscreen_button">Fullscreen</string>
+    <string name="time_duration">Duration</string>
+    <string name="seekbar">Seekbar</string>
+    <string name="time_current">Current time</string>
+    <string name="pause">Pause</string>
+    <string name="logo_image">Logo image</string>
 </resources>

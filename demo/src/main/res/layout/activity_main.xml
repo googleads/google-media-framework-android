@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
 Copyright 2014 Google Inc. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +26,7 @@ limitations under the License.
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@android:color/background_light"></FrameLayout>
+        android:background="@android:color/background_dark"/>
 
     <ListView
         android:id="@+id/video_list_view"
