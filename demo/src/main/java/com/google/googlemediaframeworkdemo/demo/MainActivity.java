@@ -226,7 +226,7 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
                 Video.VideoType.DASH_VOD,
                 "bf5bb2419360daf1"),
             "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&ciu_" +
-            "szs&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[ref" +
+            "szs&impl=s&gdfp_req=1&env=vp&output=xml_vast3&unviewed_position_start=1&url=[ref" +
             "errer_url]&correlator=[timestamp]&cust_params=gmf_format%3Dskip"),
         new VideoListItem("Unskippable preroll (DASH)",
             new Video("http://www.youtube.com/api/manifest/dash/id/bf5bb2419360daf1/source/youtub" +
@@ -236,7 +236,7 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
                 Video.VideoType.DASH_VOD,
                 "bf5bb2419360daf1"),
             "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fhanna_MA_grou" +
-            "p%2Fvideo_comp_app&ciu_szs=&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_p" +
+            "p%2Fvideo_comp_app&ciu_szs=&impl=s&gdfp_req=1&env=vp&output=xml_vast3&unviewed_p" +
             "osition_start=1&m_ast=vast&url=[referrer_url]&correlator=[timestamp]"),
         new VideoListItem("Ad rules - 0s, 5s, 10s, 15s (DASH)",
             new Video("http://www.youtube.com/api/manifest/dash/id/bf5bb2419360daf1/source/youtub" +
@@ -246,7 +246,7 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
                 Video.VideoType.DASH_VOD,
                 "bf5bb2419360daf1"),
             "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&" +
-            "ciu_szs&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&" +
+            "ciu_szs&impl=s&gdfp_req=1&env=vp&output=xml_vast3&unviewed_position_start=1&" +
             "url=[referrer_url]&correlator=[timestamp]&ad_rule=1&cmsid=11924&vid=cWCkSYdF" +
             "lU0&cust_params=gmf_format%3Dstd%2Cskip"),
         new VideoListItem("No ads (mp4)",
