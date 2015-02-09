@@ -446,7 +446,9 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     textColor = DEFAULT_TEXT_COLOR;
     chromeColor = DEFAULT_CHROME_COLOR;
     controlColor = DEFAULT_CONTROL_TINT_COLOR;
-    seekbarColor = DEFAULT_CONTROL_TINT_COLOR;
+    // Since the seek bar doens't use image assets, we can't use TRANSPARENT as the default tint
+    // because that would make it invisible, so instead we use the default text tint (White).
+    seekbarColor = DEFAULT_TEXT_COLOR;
 
     if (logoDrawable != null) {
       logoImageView.setImageDrawable(logoDrawable);
@@ -1008,7 +1010,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     fullscreenButton.setColorFilter(controlColor);
     pausePlayButton.setColorFilter(controlColor);
     seekBar.getProgressDrawable().setColorFilter(seekbarColor, PorterDuff.Mode.SRC_ATOP);
-    seekBar.getThumb().setColorFilter(controlColor, PorterDuff.Mode.SRC_ATOP);
+    seekBar.getThumb().setColorFilter(seekbarColor, PorterDuff.Mode.SRC_ATOP);
 
     // Hide the thumb drawable if the SeekBar is disabled
     if (canSeek) {
