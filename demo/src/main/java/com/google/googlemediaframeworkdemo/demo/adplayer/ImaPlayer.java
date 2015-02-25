@@ -156,14 +156,9 @@ public class ImaPlayer {
       }
     }
 
-    /**
-     * We don't respond to size changes.
-     * @param width The new width of the player.
-     * @param height The new height of the player.
-     */
     @Override
-    public void onVideoSizeChanged(int width, int height) {
-
+    public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
+      // No need to respond to size changes here.
     }
   };
 
@@ -200,7 +195,7 @@ public class ImaPlayer {
        * @param height The new height of the player.
        */
       @Override
-      public void onVideoSizeChanged(int width, int height) {
+      public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
 
       }
     };

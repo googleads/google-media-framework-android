@@ -18,85 +18,59 @@
  * This file has been taken from the ExoPlayer demo project with minor modifications.
  * https://github.com/google/ExoPlayer/
  */
-
 package com.google.android.libraries.mediaframework.exoplayerextensions;
 
 import android.content.Context;
 import android.media.MediaCodec;
 import android.net.Uri;
+import android.widget.TextView;
 
-import com.google.android.exoplayer.FrameworkSampleSource;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
+import com.google.android.exoplayer.source.DefaultSampleSource;
+import com.google.android.exoplayer.source.FrameworkSampleExtractor;
+import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper.RendererBuilder;
+import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper.RendererBuilderCallback;
 
 /**
- * A {@link ExoplayerWrapper.RendererBuilder} for streams that can be read using
+ * A {@link RendererBuilder} for streams that can be read using
  * {@link android.media.MediaExtractor}.
  */
-public class DefaultRendererBuilder implements ExoplayerWrapper.RendererBuilder {
+public class DefaultRendererBuilder implements RendererBuilder {
 
-  /**
-   * The maximum duration in milliseconds for which this video renderer can attempt to seamlessly
-   * join an ongoing playback.
-   */
-  public static final int ALLOWED_JOINING_TIME_MS = 5000;
-
-  /**
-   * The maximum number of frames that can be dropped between invocations
-   * of onDroppedFrames(int, long).
-   */
-  public static final int MAX_DROPPED_FRAME_COUNT_TO_NOTIFY = 50;
-
-  /**
-   * The context (ex {@link android.app.Activity}) in which this
-   * {@link ExoplayerWrapper.RendererBuilder} was created.
-   */
   private final Context context;
-
-  /**
-   * The URL of the video that this {@link ExoplayerWrapper.RendererBuilder} will build.
-   */
   private final Uri uri;
+  private final TextView debugTextView;
 
-  /**
-   * @param context The context (ex {@link android.app.Activity}) in which this
-   *                    {@link ExoplayerWrapper.RendererBuilder} was created.
-   * @param uri The URL of the video that this {@link ExoplayerWrapper.RendererBuilder} will build.
-   */
-  public DefaultRendererBuilder(Context context, Uri uri) {
+  public DefaultRendererBuilder(Context context, Uri uri, TextView debugTextView) {
     this.context = context;
     this.uri = uri;
+    this.debugTextView = debugTextView;
   }
 
   @Override
-  public void buildRenderers(ExoplayerWrapper player,
-                             ExoplayerWrapper.RendererBuilderCallback callback) {
-
-    // Create a sample source at the given URI with two renderers (one for audio, one for video).
-    FrameworkSampleSource sampleSource = new FrameworkSampleSource(context, uri, null, 2);
-
-    // Create the video renderer from the sample source.
+  public void buildRenderers(ExoplayerWrapper player, RendererBuilderCallback callback) {
+    // Build the video and audio renderers.
+    DefaultSampleSource sampleSource =
+        new DefaultSampleSource(new FrameworkSampleExtractor(context, uri, null), 2);
     MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource,
-        null,
-        true,
-        MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,
-        ALLOWED_JOINING_TIME_MS,
-        player.getMainHandler(),
-        player,
-        MAX_DROPPED_FRAME_COUNT_TO_NOTIFY);
-
+        null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 5000, null, player.getMainHandler(),
+        player, 50);
     MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource,
-        null,
-        true,
-        player.getMainHandler(),
-        player);
+        null, true, player.getMainHandler(), player);
+
+    // Build the debug renderer.
+    TrackRenderer debugRenderer = debugTextView != null
+        ? new DebugTrackRenderer(debugTextView, videoRenderer)
+        : null;
 
     // Invoke the callback.
     TrackRenderer[] renderers = new TrackRenderer[ExoplayerWrapper.RENDERER_COUNT];
     renderers[ExoplayerWrapper.TYPE_VIDEO] = videoRenderer;
     renderers[ExoplayerWrapper.TYPE_AUDIO] = audioRenderer;
-    callback.onRenderersBuilt(null, null, renderers);
+    renderers[ExoplayerWrapper.TYPE_DEBUG] = debugRenderer;
+    callback.onRenderers(null, null, renderers);
   }
 
 }

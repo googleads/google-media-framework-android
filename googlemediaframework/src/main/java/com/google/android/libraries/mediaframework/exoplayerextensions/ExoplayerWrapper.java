@@ -18,7 +18,6 @@
  * This file has been taken from the ExoPlayer demo project with minor modifications.
  * https://github.com/google/ExoPlayer/
  */
-
 package com.google.android.libraries.mediaframework.exoplayerextensions;
 
 import android.media.MediaCodec.CryptoException;
@@ -30,17 +29,19 @@ import com.google.android.exoplayer.DummyTrackRenderer;
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
-import com.google.android.exoplayer.MediaCodecAudioTrackRenderer.AudioTrackInitializationException;
 import com.google.android.exoplayer.MediaCodecTrackRenderer.DecoderInitializationException;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
+import com.google.android.exoplayer.audio.AudioTrack;
 import com.google.android.exoplayer.chunk.ChunkSampleSource;
 import com.google.android.exoplayer.chunk.MultiTrackChunkSource;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
-import com.google.android.exoplayer.text.TextTrackRenderer;
+import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
+import com.google.android.exoplayer.text.TextRenderer;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -50,7 +51,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.EventListener,
     DefaultBandwidthMeter.EventListener, MediaCodecVideoTrackRenderer.EventListener,
-    MediaCodecAudioTrackRenderer.EventListener, TextTrackRenderer.TextRenderer,
+    MediaCodecAudioTrackRenderer.EventListener, TextRenderer,
     StreamingDrmSessionManager.EventListener {
 
   /**
@@ -85,7 +86,7 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
      *                  individual element may be null if there do not exist tracks of the
      *                  corresponding type.
      */
-    void onRenderersBuilt(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources,
+    void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources,
                           TrackRenderer[] renderers);
     /**
      * Invoked if a {@link RendererBuilder} encounters an error.
@@ -99,25 +100,9 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    * A listener for basic playback events.
    */
   public interface PlaybackListener {
-    /**
-     * Respond to a change to the Exoplayer state.
-     * @param playWhenReady Whether the player should play as soon as it is set up.
-     * @param playbackState The state of Exoplayer instance.
-     */
     void onStateChanged(boolean playWhenReady, int playbackState);
-
-    /**
-     * Respond to error.
-     * @param e The error.
-     */
     void onError(Exception e);
-
-    /**
-     * Respond to a change in the video size.
-     * @param width The new width of the video.
-     * @param height The new height of the video.
-     */
-    void onVideoSizeChanged(int width, int height);
+    void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio);
   }
 
   /**
@@ -144,7 +129,13 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
      * Respond to error in initializing the audio track.
      * @param e The error.
      */
-    void onAudioTrackInitializationError(AudioTrackInitializationException e);
+    void onAudioTrackInitializationError(AudioTrack.InitializationException e);
+
+    /**
+     * Respond to error when writing the audio track.
+     * @param e The error.
+     */
+    void onAudioTrackWriteError(AudioTrack.WriteException e);
 
     /**
      * Respond to error in initializing the decoder.
@@ -236,7 +227,7 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
      * Respond to a successful load of data.
      * @param sourceId The id of the source of the video.
      */
-    void onLoadCompleted(int sourceId);
+    void onLoadCompleted(int sourceId, long bytesLoaded);
   }
 
   /**
@@ -252,12 +243,19 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   }
 
   /**
+   * A listener for receiving ID3 metadata parsed from the media stream.
+   */
+  public interface Id3MetadataListener {
+    void onId3Metadata(Map<String, Object> metadata);
+  }
+
+  /**
    * Exoplayer renderers are managed in an array (the array representation is used throughout the
    * Exoplayer library).
    *
    * <p>There are RENDERER_COUNT elements in the array.
    */
-  public static final int RENDERER_COUNT = 4;
+  public static final int RENDERER_COUNT = 5;
 
   /**
    * The element at index TYPE_VIDEO is a video type renderer.
@@ -275,9 +273,14 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   public static final int TYPE_TEXT = 2;
 
   /**
+   * For id3 metadata.
+   */
+  public static final int TYPE_TIMED_METADATA = 3;
+
+  /**
    * The element at index TYPE_DEBUG is a debug type renderer.
    */
-  public static final int TYPE_DEBUG = 3;
+  public static final int TYPE_DEBUG = 4;
 
   /**
    * This variable must be an int, not part of an enum because it has significance within the
@@ -377,11 +380,16 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   private MultiTrackChunkSource[] multiTrackSources;
 
   /**
-   * The names of the available tracks, indexed by DemoPlayer INDEX_* constants.
+   * The names of the available tracks, indexed by ExoplayerWrapper INDEX_* constants.
    * May be null if the track names are unknown. An individual element may be null if the track
    * names are unknown for the corresponding type.
    */
   private String[][] trackNames;
+
+  /**
+   * A list of enabled or disabled tracks to render.
+   */
+  private int[] selectedTracks;
 
   /**
    * The state of a track at a given index (one of the TYPE_* constants).
@@ -392,6 +400,8 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    * Respond to text (ex subtitle or closed captioning) events.
    */
   private TextListener textListener;
+
+  private Id3MetadataListener id3MetadataListener;
 
   /**
    * Respond to errors that occur in Exoplayer.
@@ -474,6 +484,10 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    */
   public void setTextListener(TextListener listener) {
     textListener = listener;
+  }
+
+  public void setMetadataListener(Id3MetadataListener listener) {
+    id3MetadataListener = listener;
   }
 
   public void setSurface(Surface surface) {
@@ -664,14 +678,14 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    * Returns the position of the seek head in the number of
    * milliseconds after the start of the video.
    */
-  public int getCurrentPosition() {
+  public long getCurrentPosition() {
     return player.getCurrentPosition();
   }
 
   /**
    * Returns the duration of the video in milliseconds.
    */
-  public int getDuration() {
+  public long getDuration() {
     return player.getDuration();
   }
 
@@ -717,9 +731,9 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   }
 
   @Override
-  public void onVideoSizeChanged(int width, int height) {
-    for (PlaybackListener playbackListener : playbackListeners) {
-      playbackListener.onVideoSizeChanged(width, height);
+  public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
+    for (PlaybackListener listener : playbackListeners) {
+      listener.onVideoSizeChanged(width, height, pixelWidthHeightRatio);
     }
   }
 
@@ -752,6 +766,18 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   }
 
   @Override
+  public void onLoadCompleted(int sourceId, long bytesLoaded) {
+    if (infoListener != null) {
+      infoListener.onLoadCompleted(sourceId, bytesLoaded);
+    }
+  }
+
+  @Override
+  public void onLoadCanceled(int sourceId, long bytesLoaded) {
+    // Do nothing.
+  }
+
+  @Override
   public void onDownstreamFormatChanged(int sourceId,
                                         String formatId,
                                         int trigger,
@@ -781,9 +807,16 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   }
 
   @Override
-  public void onAudioTrackInitializationError(AudioTrackInitializationException e) {
+  public void onAudioTrackInitializationError(AudioTrack.InitializationException e) {
     if (internalErrorListener != null) {
       internalErrorListener.onAudioTrackInitializationError(e);
+    }
+  }
+
+  @Override
+  public void onAudioTrackWriteError(AudioTrack.WriteException e) {
+    if (internalErrorListener != null) {
+      internalErrorListener.onAudioTrackWriteError(e);
     }
   }
 
@@ -815,6 +848,18 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     }
   }
 
+  /* package */ MetadataTrackRenderer.MetadataRenderer<Map<String, Object>>
+      getId3MetadataRenderer() {
+    return new MetadataTrackRenderer.MetadataRenderer<Map<String, Object>>() {
+      @Override
+      public void onMetadata(Map<String, Object> metadata) {
+        if (id3MetadataListener != null) {
+          id3MetadataListener.onId3Metadata(metadata);
+        }
+      }
+    };
+  }
+
   @Override
   public void onPlayWhenReadyCommitted() {
     // Do nothing.
@@ -822,18 +867,6 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
 
   @Override
   public void onDrawnToSurface(Surface surface) {
-    // Do nothing.
-  }
-
-  @Override
-  public void onLoadCompleted(int sourceId) {
-    if (infoListener != null) {
-      infoListener.onLoadCompleted(sourceId);
-    }
-  }
-
-  @Override
-  public void onLoadCanceled(int sourceId) {
     // Do nothing.
   }
 
@@ -911,6 +944,13 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     }
   }
 
+  /* package */ void processText(String text) {
+    if (textListener == null || selectedTracks[TYPE_TEXT] == DISABLED_TRACK) {
+      return;
+    }
+    textListener.onText(text);
+  }
+
   /**
    * Responds to a successful renderer build or an error.
    */
@@ -923,7 +963,7 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     }
 
     @Override
-    public void onRenderersBuilt(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources,
+    public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources,
                                  TrackRenderer[] renderers) {
       if (!canceled) {
         ExoplayerWrapper.this.onRenderers(trackNames, multiTrackSources, renderers);
