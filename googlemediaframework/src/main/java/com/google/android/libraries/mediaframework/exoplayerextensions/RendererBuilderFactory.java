@@ -32,13 +32,19 @@ public class RendererBuilderFactory {
   public static ExoplayerWrapper.RendererBuilder createRendererBuilder(Context ctx,
                                                                        Video video) {
     switch (video.getVideoType()) {
-      case DASH_VOD:
-        return new DashVodRendererBuilder(ExoplayerUtil.getUserAgent(ctx),
-            video.getUrl(),
-            video.getContentId(),
-            new WidevineTestMediaDrmCallback(video.getContentId()));
+      case HLS:
+        return new HlsRendererBuilder(ExoplayerUtil.getUserAgent(ctx),
+                                      video.getUrl(),
+                                      video.getContentId());
+      case DASH:
+        return new DashRendererBuilder(ExoplayerUtil.getUserAgent(ctx),
+                                       video.getUrl(),
+                                       video.getContentId(),
+                                       new WidevineTestMediaDrmCallback(video.getContentId()),
+                                       null); // TODO: Pass in DebugTextView here.
       case MP4:
-        return new DefaultRendererBuilder(ctx, Uri.parse(video.getUrl()));
+        // TODO: DebugTextView.
+        return new DefaultRendererBuilder(ctx, Uri.parse(video.getUrl()), null);
       default:
         return null;
     }
