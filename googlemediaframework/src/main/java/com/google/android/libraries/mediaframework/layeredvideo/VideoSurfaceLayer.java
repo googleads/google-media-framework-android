@@ -16,7 +16,6 @@
 
 package com.google.android.libraries.mediaframework.layeredvideo;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
@@ -47,12 +46,12 @@ public class VideoSurfaceLayer implements Layer {
       = new ExoplayerWrapper.PlaybackListener() {
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
-
+      // Do nothing. VideoSurfaceLayer doesn't care about state changes.
     }
 
     @Override
     public void onError(Exception e) {
-      Log.d(VideoSurfaceLayer.class.getSimpleName(), e.getMessage());
+      // Do nothing. VideoSurfaceLayer doesn't care about errors here.
     }
 
     @Override
