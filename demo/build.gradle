@@ -20,7 +20,7 @@ android {
     compileSdkVersion 19
     buildToolsVersion '19.1.0'
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 19
         targetSdkVersion 19
         versionCode 1
         versionName '1.0'
@@ -40,7 +40,6 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.google.android.gms:play-services:4.3.23'
+    compile 'com.google.android.gms:play-services-ads:6.5.87'
     compile project(':googlemediaframework')
-
 }

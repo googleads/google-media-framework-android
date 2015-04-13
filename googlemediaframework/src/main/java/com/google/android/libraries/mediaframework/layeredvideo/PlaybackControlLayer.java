@@ -24,6 +24,7 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.view.Gravity;
@@ -87,6 +88,24 @@ import java.util.Locale;
  * <p>The view is defined in the layout file: res/layout/playback_control_layer.xml.
  */
 public class PlaybackControlLayer implements Layer, PlayerControlCallback {
+
+  /**
+   * Decor view flags to hide the navigation bars when in fullscreen mode
+   *
+   */
+  private static final int FULLSCREEN_FLAGS;
+
+  static {
+    // Fullscreen and hide navigation bar
+    int flags = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
+
+    // Enable immersive mode on KitKat (API 19)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      flags ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+    }
+    FULLSCREEN_FLAGS = flags;
+  }
+
 
   /**
    * In order to imbue the {@link PlaybackControlLayer} with the ability make the player fullscreen,
@@ -509,7 +528,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
     if (isFullscreen) {
       fullscreenCallback.onReturnFromFullscreen();
-      activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+      activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
 
       // Make the status bar and navigation bar visible again.
       activity.getWindow().getDecorView().setSystemUiVisibility(0);
@@ -521,10 +540,9 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
       isFullscreen = false;
     } else {
       fullscreenCallback.onGoToFullscreen();
-      activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+      activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
 
-      activity.getWindow().getDecorView().setSystemUiVisibility(
-          View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
+      activity.getWindow().getDecorView().setSystemUiVisibility(FULLSCREEN_FLAGS);
 
       // Whenever the status bar and navigation bar appear, we want the playback controls to
       // appear as well.
@@ -603,7 +621,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
               // controls are hidden.
               if (isFullscreen) {
                 getLayerManager().getActivity().getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
+                                   FULLSCREEN_FLAGS);
               }
               handler.removeMessages(SHOW_PROGRESS);
               isVisible = false;

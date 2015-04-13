@@ -18,9 +18,13 @@ package com.google.googlemediaframeworkdemo.demo;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -37,7 +41,51 @@ import com.google.googlemediaframeworkdemo.demo.adplayer.ImaPlayer;
  */
 public class MainActivity extends Activity implements PlaybackControlLayer.FullscreenCallback {
 
-  /**
+    public static String TAG = MainActivity.class.getName();
+
+    private static final int FULLSCREEN_FLAGS;
+
+    static {
+        // Fullscreen and hide navigation bar
+        int flags = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
+
+        // Enable immersive mode on KitKat (API 19)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            flags ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        }
+
+        FULLSCREEN_FLAGS = flags;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            videoListView.setVisibility(View.GONE);
+            getWindow().getDecorView().setSystemUiVisibility(FULLSCREEN_FLAGS);
+
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+        } else {
+            videoListView.setVisibility(View.VISIBLE);
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+//    // Check screen orientation or screen rotate event here
+//    @Override
+//    public void onConfigurationChanged(Configuration newConfig) {
+//        super.onConfigurationChanged(newConfig);
+//
+//        // Checks the orientation of the screen for landscape and portrait
+//        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+//        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+//            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+    /**
    * The player which will be used to play the content videos and the ads.
    */
   private ImaPlayer imaPlayer;
@@ -130,7 +178,7 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
         videoListItem.video,
         videoTitle,
         adTagUrl);
-    imaPlayer.setFullscreenCallback(this);
+//    imaPlayer.setFullscreenCallback(this);
 
     Resources res = getResources();
 
@@ -143,8 +191,8 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
     // Uncomment the following lines to set the color of the player's top chrome, bottom chrome, and
     // background to be a blue color.
 
-    // int sampleChromeColor = res.getColor(R.color.sample_chrome_color);
-    // imaPlayer.setChromeColor(sampleChromeColor);
+    int sampleChromeColor = res.getColor(R.color.sample_chrome_color);
+    imaPlayer.setChromeColor(sampleChromeColor);
 
     // Uncomment the following lines to set the color of the buttons and seekbar in the player
     // to be a green color.
@@ -263,8 +311,9 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
                 Video.VideoType.HLS),
             null),
         new VideoListItem("AdRules - Apple test (HLS)",
-            new Video("https://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/" +
-                "bipbop_4x3_variant.m3u8 ",
+            new Video(
+                    "http://weather-vh.akamaihd.net/i/D-1233652_,400000,750000,1000000,1500000,4000000,_event1.mp4.csmil/master.m3u8",
+//                    "http://weather-vh.akamaihd.net/i/D-1224075_,400000,750000,1000000,1500000,4000000,_event1.mp4.csmil/master.m3u8",
                 Video.VideoType.HLS),
             "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&" +
             "ciu_szs&impl=s&gdfp_req=1&env=vp&output=xml_vast3&unviewed_position_start=1&" +
