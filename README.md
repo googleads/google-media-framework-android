@@ -71,3 +71,4 @@ Then, rename `library.jar` to `exoplayer.jar` and put it into the `libs` folder 
     - Google Repository (installed via SDK manager)
   - ExoPlayer (Included as a jar file)
 
+
