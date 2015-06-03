@@ -42,8 +42,8 @@ public class VideoSurfaceLayer implements Layer {
   /**
    * When a size change occurs, change the size of the surface view.
    */
-  private ExoplayerWrapper.PlaybackListener playbackListener
-      = new ExoplayerWrapper.PlaybackListener() {
+  private ExoplayerWrapper.Listener playbackListener
+      = new ExoplayerWrapper.Listener() {
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
       // Do nothing. VideoSurfaceLayer doesn't care about state changes.
@@ -72,8 +72,9 @@ public class VideoSurfaceLayer implements Layer {
       if (wrapper != null) {
         wrapper.setSurface(surfaceHolder.getSurface());
         if (wrapper.getSurface().isValid() ||
-            wrapper.getStateForTrackType(ExoplayerWrapper.TYPE_VIDEO)
-                == ExoplayerWrapper.DISABLED_TRACK) {
+            wrapper.getSelectedTrackIndex(ExoplayerWrapper.TYPE_VIDEO)
+              == ExoplayerWrapper.DISABLED_TRACK)
+        {
           wrapper.setPlayWhenReady(autoplay);
         }
       }

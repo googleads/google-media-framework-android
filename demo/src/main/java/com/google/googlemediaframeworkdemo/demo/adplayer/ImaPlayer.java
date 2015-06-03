@@ -130,8 +130,8 @@ public class ImaPlayer {
   /**
    * Notifies callbacks when the ad finishes.
    */
-  private final ExoplayerWrapper.PlaybackListener adPlaybackListener
-      = new ExoplayerWrapper.PlaybackListener() {
+  private final ExoplayerWrapper.Listener adPlaybackListener
+      = new ExoplayerWrapper.Listener() {
 
     /**
      * We don't respond to errors.
@@ -165,8 +165,8 @@ public class ImaPlayer {
     /**
      * Listener for the content player
      */
-    private final ExoplayerWrapper.PlaybackListener contentPlaybackListener
-            = new ExoplayerWrapper.PlaybackListener() {
+    private final ExoplayerWrapper.Listener contentPlaybackListener
+            = new ExoplayerWrapper.Listener() {
 
       /**
        * We don't respond to errors.
@@ -246,6 +246,7 @@ public class ImaPlayer {
    * Handles loading, playing, retrieving progress, pausing, resuming, and stopping ad.
    */
   private final VideoAdPlayer videoAdPlayer = new VideoAdPlayer() {
+
     @Override
     public void playAd() {
       hideContentPlayer();
@@ -297,7 +298,7 @@ public class ImaPlayer {
      * then the start method will be ignored.
      */
     @Override
-    public VideoProgressUpdate getProgress() {
+    public VideoProgressUpdate getAdProgress() {
       VideoProgressUpdate vpu;
 
       if (adPlayer == null && contentPlayer == null) {

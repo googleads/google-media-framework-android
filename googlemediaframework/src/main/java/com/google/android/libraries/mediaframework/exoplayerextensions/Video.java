@@ -24,10 +24,19 @@ public class Video {
   /**
    * A list of available video formats which Exoplayer can play.
    */
-  public static enum VideoType {
-    DASH,
-    MP4,
-    HLS
+  public enum VideoType {
+    DASH (0),
+    SS (1),
+    HLS (2),
+    MP4 (3),
+    MP3 (4),
+    M4A (5),
+    WEBM (6),
+    TS (7),
+    AAC (8);
+
+    private int type;
+    private VideoType(int type) { this.type = type;}
   }
 
   /**

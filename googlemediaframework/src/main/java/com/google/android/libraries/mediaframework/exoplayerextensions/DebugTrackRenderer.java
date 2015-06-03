@@ -35,21 +35,17 @@ import com.google.android.exoplayer.chunk.Format;
 /* package */ class DebugTrackRenderer extends TrackRenderer implements Runnable {
 
   private final TextView textView;
+  private final ExoplayerWrapper player;
   private final MediaCodecTrackRenderer renderer;
-  private final ChunkSampleSource videoSampleSource;
 
   private volatile boolean pendingFailure;
   private volatile long currentPositionUs;
 
-  public DebugTrackRenderer(TextView textView, MediaCodecTrackRenderer renderer) {
-    this(textView, renderer, null);
-  }
-
-  public DebugTrackRenderer(TextView textView, MediaCodecTrackRenderer renderer,
-                            ChunkSampleSource videoSampleSource) {
+  public DebugTrackRenderer(TextView textView, ExoplayerWrapper player,
+                            MediaCodecTrackRenderer renderer) {
     this.textView = textView;
+    this.player = player;
     this.renderer = renderer;
-    this.videoSampleSource = videoSampleSource;
   }
 
   public void injectFailure() {
@@ -67,7 +63,7 @@ import com.google.android.exoplayer.chunk.Format;
   }
 
   @Override
-  protected int doPrepare() throws ExoPlaybackException {
+  protected int doPrepare(long positionUs) throws ExoPlaybackException {
     maybeFail();
     return STATE_PREPARED;
   }
@@ -92,8 +88,9 @@ import com.google.android.exoplayer.chunk.Format;
   }
 
   private String getQualityString() {
-    Format format = videoSampleSource == null ? null : videoSampleSource.getFormat();
-    return format == null ? "null" : "height(" + format.height + "), itag(" + format.id + ")";
+    Format format = player.getVideoFormat();
+    return format == null ? "id:? br:? h:?"
+            : "id:" + format.id + " br:" + format.bitrate + " h:" + format.height;
   }
 
   @Override

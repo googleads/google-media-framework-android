@@ -135,7 +135,7 @@ public class SimpleVideoPlayer {
    * Set a listener which reacts to state changes, video size changes, and errors.
    * @param listener Listens to playback events.
    */
-  public void addPlaybackListener(ExoplayerWrapper.PlaybackListener listener) {
+  public void addPlaybackListener(ExoplayerWrapper.Listener listener) {
     layerManager.getExoplayerWrapper().addListener(listener);
   }
 
