@@ -55,7 +55,7 @@ public class VideoSurfaceLayer implements Layer {
     }
 
     @Override
-    public void onVideoSizeChanged(int width, int height, float pixelWidthAspectRatio) {
+    public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthAspectRatio) {
       surfaceView.setVideoWidthHeightRatio(
           height == 0 ? 1 : (width * pixelWidthAspectRatio) / height);
     }

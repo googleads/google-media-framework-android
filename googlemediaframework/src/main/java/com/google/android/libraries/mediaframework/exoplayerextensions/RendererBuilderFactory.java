@@ -33,18 +33,16 @@ public class RendererBuilderFactory {
                                                                        Video video) {
     switch (video.getVideoType()) {
       case HLS:
-        return new HlsRendererBuilder(ExoplayerUtil.getUserAgent(ctx),
-                                      video.getUrl(),
-                                      video.getContentId());
+        return new HlsRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx),
+                                      video.getUrl());
       case DASH:
-        return new DashRendererBuilder(ExoplayerUtil.getUserAgent(ctx),
+        return new DashRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx),
                                        video.getUrl(),
-                                       video.getContentId(),
-                                       new WidevineTestMediaDrmCallback(video.getContentId()),
-                                       null); // TODO: Pass in DebugTextView here.
+                                       new WidevineTestMediaDrmCallback(video.getContentId()));
       case MP4:
-        // TODO: DebugTextView.
-        return new DefaultRendererBuilder(ctx, Uri.parse(video.getUrl()), null);
+        return new ExtractorRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx), Uri.parse(video.getUrl()));
+      case OTHER:
+        return new ExtractorRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx), Uri.parse(video.getUrl()));
       default:
         return null;
     }

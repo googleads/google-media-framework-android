@@ -26,7 +26,7 @@ import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.chunk.ChunkSampleSource;
-import com.google.android.exoplayer.chunk.Format;
+import com.google.android.exoplayer.MediaFormat;
 
 /**
  * A {@link TrackRenderer} that periodically updates debugging information displayed by a
@@ -67,9 +67,9 @@ import com.google.android.exoplayer.chunk.Format;
   }
 
   @Override
-  protected int doPrepare() throws ExoPlaybackException {
+  protected boolean doPrepare(long positionUs) throws ExoPlaybackException {
     maybeFail();
-    return STATE_PREPARED;
+    return true;
   }
 
   @Override
@@ -92,13 +92,8 @@ import com.google.android.exoplayer.chunk.Format;
   }
 
   private String getQualityString() {
-    Format format = videoSampleSource == null ? null : videoSampleSource.getFormat();
-    return format == null ? "null" : "height(" + format.height + "), itag(" + format.id + ")";
-  }
-
-  @Override
-  protected long getCurrentPositionUs() {
-    return currentPositionUs;
+    MediaFormat format = videoSampleSource == null ? null : videoSampleSource.getFormat(0);
+    return format == null ? "null" : "height(" + format.height + "), itag(" + format.trackId + ")";
   }
 
   @Override
@@ -123,4 +118,18 @@ import com.google.android.exoplayer.chunk.Format;
     }
   }
 
+  @Override
+  protected void maybeThrowError() {
+    // Do nothing.
+  }
+
+  @Override
+  protected MediaFormat getFormat(int track) {
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected int getTrackCount() {
+    return 0;
+  }
 }
