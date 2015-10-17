@@ -262,6 +262,14 @@ public class SimpleVideoPlayer {
   }
 
   /**
+   * Set the callback which will be called when the player plays video.
+   * @param playCallback The callback.
+   */
+  public void setPlayCallback(PlaybackControlLayer.PlayCallback playCallback) {
+    playbackControlLayer.setPlayCallback(playCallback);
+  }
+
+  /**
    * Set the logo with appears in the left of the top chrome.
    * @param logo The drawable which will be the logo.
    */
