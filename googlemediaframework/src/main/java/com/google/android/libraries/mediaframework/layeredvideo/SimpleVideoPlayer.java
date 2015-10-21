@@ -237,7 +237,7 @@ public class SimpleVideoPlayer {
   public void play() {
     // Set the autoplay for the video surface layer in case the surface hasn't been created yet.
     // This way, when the surface is created, it will automatically start playing.
-    videoSurfaceLayer.setAutoplay(true);
+    videoSurfaceLayer.setAutoplay(false);
 
     layerManager.getControl().start();
   }
