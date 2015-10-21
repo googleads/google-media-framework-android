@@ -62,6 +62,11 @@ public class SimpleVideoPlayer {
   private final VideoSurfaceLayer videoSurfaceLayer;
 
   /**
+   * Set whether the video should play immediately.
+   */
+  private boolean autoplay;
+
+  /**
    * @param activity The activity that will contain the video player.
    * @param container The {@link FrameLayout} which will contain the video player.
    * @param video The video that should be played.
@@ -97,6 +102,7 @@ public class SimpleVideoPlayer {
     playbackControlLayer = new PlaybackControlLayer(videoTitle, fullscreenCallback);
     subtitleLayer = new SubtitleLayer();
     videoSurfaceLayer = new VideoSurfaceLayer(autoplay);
+    this.autoplay = autoplay;
 
     List<Layer> layers = new ArrayList<Layer>();
     layers.add(videoSurfaceLayer);
@@ -237,7 +243,7 @@ public class SimpleVideoPlayer {
   public void play() {
     // Set the autoplay for the video surface layer in case the surface hasn't been created yet.
     // This way, when the surface is created, it will automatically start playing.
-    videoSurfaceLayer.setAutoplay(false);
+    videoSurfaceLayer.setAutoplay(autoplay);
 
     layerManager.getControl().start();
   }
