@@ -55,6 +55,9 @@ import java.util.List;
  */
 public class ImaPlayer {
 
+  private static String PLAYER_TYPE = "google/gmf-android";
+  private static String PLAYER_VERSION = "0.1.2";
+
   /**
    * The activity that is displaying this video player.
    */
@@ -303,7 +306,7 @@ public class ImaPlayer {
      * then the start method will be ignored.
      */
     @Override
-    public VideoProgressUpdate getProgress() {
+    public VideoProgressUpdate getAdProgress() {
       VideoProgressUpdate vpu;
 
       if (adPlayer == null && contentPlayer == null) {
@@ -361,6 +364,8 @@ public class ImaPlayer {
       this.adTagUrl = Uri.parse(adTagUrl);
     }
 
+    sdkSettings.setPlayerType(PLAYER_TYPE);
+    sdkSettings.setPlayerVersion(PLAYER_VERSION);
     adsLoader = ImaSdkFactory.getInstance().createAdsLoader(activity, sdkSettings);
     AdListener adListener = new AdListener();
     adsLoader.addAdErrorListener(adListener);
