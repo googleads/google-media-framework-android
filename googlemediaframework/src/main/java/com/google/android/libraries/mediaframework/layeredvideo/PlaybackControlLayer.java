@@ -110,6 +110,15 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   }
 
   /**
+   * The {@link PlaybackControlLayer.PlayCallback} implementation will be called when the player
+   * plays the video (e.g. to request IMA ads) upon user taps on the play button.
+   */
+  public interface PlayCallback {
+
+    public void onPlay();
+  }
+
+  /**
    * Message handler which allows us to send delayed messages to the {@link PlaybackControlLayer}
    * This is useful for fading out the view after a certain time.
    */
@@ -269,6 +278,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   private FullscreenCallback fullscreenCallback;
 
+  private PlayCallback playCallback;
   /**
    * The message handler which deals with displaying progress and fading out the media controls
    * We use it so that we can make the view fade out after a timeout (by sending a delayed message).
@@ -713,6 +723,9 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   @Override
   public void onPlay() {
     updatePlayPauseButton();
+    if (playCallback != null) {
+      playCallback.onPlay();
+    }
   }
 
   /**
@@ -1074,5 +1087,12 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
 
     return position;
+  }
+
+  /**
+   * Set play callback
+   */
+  public void setPlayCallback(PlayCallback playCallback) {
+    this.playCallback = playCallback;
   }
 }
