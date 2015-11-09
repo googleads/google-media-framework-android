@@ -22,10 +22,16 @@ package com.google.android.libraries.mediaframework.exoplayerextensions;
 
 import android.media.MediaCodec;
 
+import com.google.android.exoplayer.DefaultLoadControl;
+import com.google.android.exoplayer.LoadControl;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
+import com.google.android.exoplayer.MediaCodecUtil.DecoderQueryException;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
+import com.google.android.exoplayer.audio.AudioCapabilities;
+import com.google.android.exoplayer.chunk.VideoFormatSelectorUtil;
 import com.google.android.exoplayer.hls.HlsChunkSource;
+import com.google.android.exoplayer.hls.HlsMasterPlaylist;
 import com.google.android.exoplayer.hls.HlsPlaylist;
 import com.google.android.exoplayer.hls.HlsPlaylistParser;
 import com.google.android.exoplayer.hls.HlsSampleSource;
@@ -33,12 +39,15 @@ import com.google.android.exoplayer.metadata.Id3Parser;
 import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
 import com.google.android.exoplayer.text.eia608.Eia608TrackRenderer;
 import com.google.android.exoplayer.upstream.DataSource;
+import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
-import com.google.android.exoplayer.upstream.UriDataSource;
+import com.google.android.exoplayer.upstream.DefaultUriDataSource;
 import com.google.android.exoplayer.util.ManifestFetcher;
 import com.google.android.exoplayer.util.ManifestFetcher.ManifestCallback;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper.RendererBuilder;
-import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper.RendererBuilderCallback;
+
+import android.content.Context;
+import android.os.Handler;
 
 import java.io.IOException;
 import java.util.Map;
@@ -46,61 +55,125 @@ import java.util.Map;
 /**
  * A {@link RendererBuilder} for HLS.
  */
-public class HlsRendererBuilder implements RendererBuilder, ManifestCallback<HlsPlaylist> {
+public class HlsRendererBuilder implements RendererBuilder {
 
+  private static final int BUFFER_SEGMENT_SIZE = 64 * 1024;
+  private static final int BUFFER_SEGMENTS = 256;
+
+  private final Context context;
   private final String userAgent;
   private final String url;
-  private final String contentId;
 
   private ExoplayerWrapper player;
-  private RendererBuilderCallback callback;
 
-  public HlsRendererBuilder(String userAgent, String url, String contentId) {
+  private AsyncRendererBuilder currentAsyncBuilder;
+
+  public HlsRendererBuilder(Context context, String userAgent, String url) {
+    this.context = context;
     this.userAgent = userAgent;
     this.url = url;
-    this.contentId = contentId;
   }
 
   @Override
-  public void buildRenderers(ExoplayerWrapper player, RendererBuilderCallback callback) {
+  public void buildRenderers(ExoplayerWrapper player) {
     this.player = player;
-    this.callback = callback;
-    HlsPlaylistParser parser = new HlsPlaylistParser();
-    ManifestFetcher<HlsPlaylist> playlistFetcher =
-        new ManifestFetcher<HlsPlaylist>(parser, contentId, url, userAgent);
-    playlistFetcher.singleLoad(player.getMainHandler().getLooper(), this);
+    currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player);
+    currentAsyncBuilder.init();
   }
 
   @Override
-  public void onManifestError(String contentId, IOException e) {
-    callback.onRenderersError(e);
+  public void cancel() {
+    if (currentAsyncBuilder != null) {
+      currentAsyncBuilder.cancel();
+      currentAsyncBuilder = null;
+    }
   }
 
-  @Override
-  public void onManifest(String contentId, HlsPlaylist manifest) {
-    DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+  private static final class AsyncRendererBuilder implements ManifestCallback<HlsPlaylist> {
 
-    DataSource dataSource = new UriDataSource(userAgent, bandwidthMeter);
-    HlsChunkSource chunkSource = new HlsChunkSource(dataSource, url, manifest, bandwidthMeter, null,
-        HlsChunkSource.ADAPTIVE_MODE_SPLICE);
-    HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, true, 3);
-    MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource,
-        MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 5000, player.getMainHandler(), player, 50);
-    MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
+    private final Context context;
+    private final String userAgent;
+    private final String url;
+    private final ExoplayerWrapper player;
+    private final ManifestFetcher<HlsPlaylist> playlistFetcher;
 
-    MetadataTrackRenderer<Map<String, Object>> id3Renderer =
-        new MetadataTrackRenderer<Map<String, Object>>(sampleSource, new Id3Parser(),
-            player.getId3MetadataRenderer(), player.getMainHandler().getLooper());
+    private boolean canceled;
 
-    Eia608TrackRenderer closedCaptionRenderer = new Eia608TrackRenderer(sampleSource, player,
-        player.getMainHandler().getLooper());
+    public AsyncRendererBuilder(Context context, String userAgent, String url, ExoplayerWrapper player) {
+      this.context = context;
+      this.userAgent = userAgent;
+      this.url = url;
+      this.player = player;
+      HlsPlaylistParser parser = new HlsPlaylistParser();
+      playlistFetcher = new ManifestFetcher<>(url, new DefaultUriDataSource(context, userAgent),
+              parser);
+    }
 
-    TrackRenderer[] renderers = new TrackRenderer[ExoplayerWrapper.RENDERER_COUNT];
-    renderers[ExoplayerWrapper.TYPE_VIDEO] = videoRenderer;
-    renderers[ExoplayerWrapper.TYPE_AUDIO] = audioRenderer;
-    renderers[ExoplayerWrapper.TYPE_TIMED_METADATA] = id3Renderer;
-    renderers[ExoplayerWrapper.TYPE_TEXT] = closedCaptionRenderer;
-    callback.onRenderers(null, null, renderers);
-  }
+    public void init() {
+      playlistFetcher.singleLoad(player.getMainHandler().getLooper(), this);
+    }
+
+    public void cancel() {
+      canceled = true;
+    }
+
+    @Override
+    public void onSingleManifestError(IOException e) {
+      if (canceled) {
+        return;
+      }
+
+      player.onRenderersError(e);
+    }
+
+    @Override
+    public void onSingleManifest(HlsPlaylist manifest) {
+      if (canceled) {
+        return;
+      }
+
+      Handler mainHandler = player.getMainHandler();
+      LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
+      DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+
+      int[] variantIndices = null;
+      if (manifest instanceof HlsMasterPlaylist) {
+        HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) manifest;
+        try {
+          variantIndices = VideoFormatSelectorUtil.selectVideoFormatsForDefaultDisplay(
+                  context, masterPlaylist.variants, null, false);
+        } catch (DecoderQueryException e) {
+          player.onRenderersError(e);
+          return;
+        }
+        if (variantIndices.length == 0) {
+          player.onRenderersError(new IllegalStateException("No variants selected."));
+          return;
+        }
+      }
+
+      DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+      HlsChunkSource chunkSource = new HlsChunkSource(dataSource, url, manifest, bandwidthMeter,
+              variantIndices, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
+      HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,
+              BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player, ExoplayerWrapper.TYPE_VIDEO);
+            MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context,
+                    sampleSource, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 5000, mainHandler, player, 50);
+            MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource,
+                    null, true, player.getMainHandler(), player, AudioCapabilities.getCapabilities(context));
+            MetadataTrackRenderer<Map<String, Object>> id3Renderer = new MetadataTrackRenderer<>(
+                    sampleSource, new Id3Parser(), player, mainHandler.getLooper());
+            Eia608TrackRenderer closedCaptionRenderer = new Eia608TrackRenderer(sampleSource, player,
+                    mainHandler.getLooper());
+
+            TrackRenderer[] renderers = new TrackRenderer[ExoplayerWrapper.RENDERER_COUNT];
+            renderers[ExoplayerWrapper.TYPE_VIDEO] = videoRenderer;
+            renderers[ExoplayerWrapper.TYPE_AUDIO] = audioRenderer;
+            renderers[ExoplayerWrapper.TYPE_METADATA] = id3Renderer;
+            renderers[ExoplayerWrapper.TYPE_TEXT] = closedCaptionRenderer;
+            player.onRenderers(renderers, bandwidthMeter);
+        }
+
+    }
 
 }
