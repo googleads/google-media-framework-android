@@ -27,7 +27,8 @@ public class Video {
   public static enum VideoType {
     DASH,
     MP4,
-    HLS
+    HLS,
+    OTHER
   }
 
   /**
