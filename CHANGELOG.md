@@ -1,5 +1,10 @@
 # GoogleMediaFramework CHANGELOG
 
+## 0.2.0
+- Updated ExoPlayer to v1.5.2
+- Updated IMA SDK in demo to v3.b13.3
+- Added setPlayerType and setPlayerVersion calls to demo player
+
 ## 0.1.2
 - UI for ad player
 - Simplified API

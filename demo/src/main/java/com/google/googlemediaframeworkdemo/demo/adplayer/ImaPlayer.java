@@ -56,7 +56,7 @@ import java.util.List;
 public class ImaPlayer {
 
   private static String PLAYER_TYPE = "google/gmf-android";
-  private static String PLAYER_VERSION = "0.1.2";
+  private static String PLAYER_VERSION = "0.2.0";
 
   /**
    * The activity that is displaying this video player.
