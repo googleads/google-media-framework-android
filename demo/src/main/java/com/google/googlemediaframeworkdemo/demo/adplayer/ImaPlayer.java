@@ -95,6 +95,8 @@ public class ImaPlayer {
    */
   private AdsManager adsManager;
 
+  private AdListener adListener;
+
   /**
    * These callbacks are notified when the video is played and when it ends. The IMA SDK uses this
    * to poll for video progress and when to stop the ad.
@@ -367,7 +369,7 @@ public class ImaPlayer {
     sdkSettings.setPlayerType(PLAYER_TYPE);
     sdkSettings.setPlayerVersion(PLAYER_VERSION);
     adsLoader = ImaSdkFactory.getInstance().createAdsLoader(activity, sdkSettings);
-    AdListener adListener = new AdListener();
+    adListener = new AdListener();
     adsLoader.addAdErrorListener(adListener);
     adsLoader.addAdsLoadedListener(adListener);
 
@@ -587,6 +589,7 @@ public class ImaPlayer {
     }
     adsLoader.contentComplete();
     contentPlayer.release();
+    adsLoader.removeAdsLoadedListener(adListener);
   }
 
   /**
