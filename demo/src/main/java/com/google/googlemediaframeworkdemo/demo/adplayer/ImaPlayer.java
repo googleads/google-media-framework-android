@@ -579,6 +579,11 @@ public class ImaPlayer {
   public void release() {
     if (adPlayer != null) {
       adPlayer.release();
+      adPlayer = null;
+    }
+    if (adsManager != null) {
+      adsManager.destroy();
+      adsManager = null;
     }
     adsLoader.contentComplete();
     contentPlayer.release();
@@ -632,7 +637,7 @@ public class ImaPlayer {
   }
 
   /**
-   * Destroy the {@link SimpleVideoPlayer} responsible for playing the ad and rmeove it.
+   * Destroy the {@link SimpleVideoPlayer} responsible for playing the ad and remove it.
    */
   private void destroyAdPlayer(){
     if(adPlayerContainer != null){
