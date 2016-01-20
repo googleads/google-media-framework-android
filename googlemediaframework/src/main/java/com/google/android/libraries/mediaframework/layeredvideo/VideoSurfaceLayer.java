@@ -163,6 +163,9 @@ public class VideoSurfaceLayer implements Layer {
    * When you are finished using this object, call this method.
    */
   public void release() {
-    layerManager.getExoplayerWrapper().removeListener(playbackListener);
+    ExoplayerWrapper wrapper = layerManager.getExoplayerWrapper();
+    if (wrapper != null) {
+      wrapper.removeListener(playbackListener);
+    }
   }
 }
