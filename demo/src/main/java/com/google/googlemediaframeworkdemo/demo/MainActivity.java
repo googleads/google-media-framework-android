@@ -112,6 +112,28 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
   }
 
   /**
+   * Pause the video player when the activity is paused.
+   */
+  @Override
+  protected void onPause() {
+    if (imaPlayer != null) {
+      imaPlayer.pause();
+    }
+    super.onPause();
+  }
+
+  /**
+   * Resume the video player when the activity is paused.
+   */
+  @Override
+  protected void onResume() {
+    super.onResume();
+    if (imaPlayer != null) {
+      imaPlayer.resume();
+    }
+  }
+
+  /**
    * When a video has been selected, create an {@link ImaPlayer} and play the video.
    */
   public void createImaPlayer(VideoListItem videoListItem) {
