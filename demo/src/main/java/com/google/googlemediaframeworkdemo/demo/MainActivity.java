@@ -214,6 +214,14 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
    */
   public VideoListItem[] getVideoListItems() {
     return new VideoListItem[] {
+        new VideoListItem("Google Glass (MP4,H264)",
+             new Video("http://www.youtube.com/api/manifest/dash/id/bf5bb2419360daf1/source/youtube?"
+                            + "as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,source,id,as&ip=0.0.0.0&"
+                            + "ipbits=0&expire=19000000000&signature=51AF5F39AB0CEC3E5497CD9C900EBFEAECCCB5C7."
+                            + "8506521BFC350652163895D4C26DEE124209AA9E&key=ik0",
+                            Video.VideoType.DASH,
+                            "bf5bb2419360daf1"),
+                    null),
         new VideoListItem("No ads (DASH)",
             new Video("http://www.youtube.com/api/manifest/dash/id/bf5bb2419360daf1/source/youtub" +
                 "e?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,as&ip=0.0.0.0&ip" +

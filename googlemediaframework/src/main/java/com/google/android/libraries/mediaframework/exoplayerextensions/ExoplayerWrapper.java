@@ -125,6 +125,14 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     void onAudioTrackWriteError(AudioTrack.WriteException e);
 
     /**
+     * Respond to error when running the audio track.
+     * @param bufferSize The buffer size.
+     * @param bufferSizeMs The buffer size in Ms.
+     * @param elapsedSinceLastFeedMs The time elapsed since last feed in Ms.
+     */
+    void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs);
+
+    /**
      * Respond to error in initializing the decoder.
      * @param e The error.
      */
@@ -222,7 +230,7 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
 
     void onDecoderInitialized(String decoderName, long elapsedRealtimeMs,
                               long initializationDurationMs);
-    void onAvailableRangeChanged(TimeRange availableRange);
+    void onAvailableRangeChanged(int sourceId, TimeRange availableRange);
   }
 
   /**
@@ -827,6 +835,13 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   }
 
   @Override
+  public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+    if (internalErrorListener != null) {
+      internalErrorListener.onAudioTrackUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
+    }
+  }
+
+  @Override
   public void onCryptoError(CryptoException e) {
     if (internalErrorListener != null) {
       internalErrorListener.onCryptoError(e);
@@ -880,9 +895,9 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   }
 
   @Override
-  public void onAvailableRangeChanged(TimeRange availableRange) {
+  public void onAvailableRangeChanged(int sourceId, TimeRange availableRange) {
     if (infoListener != null) {
-      infoListener.onAvailableRangeChanged(availableRange);
+      infoListener.onAvailableRangeChanged(sourceId, availableRange);
     }
   }
 
