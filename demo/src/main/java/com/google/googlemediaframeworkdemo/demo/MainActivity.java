@@ -269,7 +269,16 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
             "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&" +
             "ciu_szs&impl=s&gdfp_req=1&env=vp&output=xml_vast3&unviewed_position_start=1&" +
             "url=[referrer_url]&correlator=[timestamp]&ad_rule=1&cmsid=11924&vid=cWCkSYdF" +
-            "lU0&cust_params=gmf_format%3Dstd%2Cskip")
+            "lU0&cust_params=gmf_format%3Dstd%2Cskip"),
+        new VideoListItem("Pre-Mid-Post - BBB (HLS)",
+            new Video("http://googleimadev-vh.akamaihd.net/i/big_buck_bunny/bbb-,480p,720p,1080p" +
+                 ",.mov.csmil/master.m3u8",
+                 Video.VideoType.HLS),
+                 "https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&" +
+            "iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&" +
+            "ad_rule=1&impl=s&gdfp_req=1&env=vp&output=vmap&unviewed_position_start=1&" +
+            "cust_params=deployment%3Ddevsite%26sample_ar%3Dpremidpost&cmsid=496&" +
+            "vid=short_onecue&correlator=")
     };
   }
 
