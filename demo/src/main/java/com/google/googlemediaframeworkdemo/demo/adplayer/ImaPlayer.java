@@ -35,6 +35,7 @@ import com.google.ads.interactivemedia.v3.api.AdsManagerLoadedEvent;
 import com.google.ads.interactivemedia.v3.api.AdsRequest;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
 import com.google.ads.interactivemedia.v3.api.ImaSdkSettings;
+import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoAdPlayer;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.google.android.exoplayer.ExoPlayer;
@@ -89,13 +90,17 @@ public class ImaPlayer {
    */
   private AdsLoader adsLoader;
 
-
   /**
    * Responsible for containing listeners for processing the elements of the ad.
    */
   private AdsManager adsManager;
 
   private AdListener adListener;
+
+  /**
+   * Responsible for reporting progress of a content player to the {@link com.google.ads.interactivemedia.v3.api.AdsLoader}
+   */
+  private ContentProgressProvider contentProgressProvider;
 
   /**
    * These callbacks are notified when the video is played and when it ends. The IMA SDK uses this
@@ -311,19 +316,12 @@ public class ImaPlayer {
     public VideoProgressUpdate getAdProgress() {
       VideoProgressUpdate vpu;
 
-      if (adPlayer == null && contentPlayer == null) {
-        // If neither player is available, indicate that the time is not ready.
-        vpu = VideoProgressUpdate.VIDEO_TIME_NOT_READY;
-      } else if (adPlayer != null) {
+      if(adPlayer != null) {
         // If an ad is playing, report the progress of the ad player.
-        vpu = new VideoProgressUpdate(adPlayer.getCurrentPosition(),
-            adPlayer.getDuration());
+        vpu = new VideoProgressUpdate(adPlayer.getCurrentPosition(), adPlayer.getDuration());
       } else {
-        // If the cotntent is playing, report the progress of the content player.
-        vpu = new VideoProgressUpdate(contentPlayer.getCurrentPosition(),
-            contentPlayer.getDuration());
+        vpu = VideoProgressUpdate.VIDEO_TIME_NOT_READY;
       }
-
 
       if (oldVpu == null) {
         oldVpu = vpu;
@@ -384,10 +382,10 @@ public class ImaPlayer {
 
     contentPlayer.addPlaybackListener(contentPlaybackListener);
     contentPlayer.setPlayCallback(new PlaybackControlLayer.PlayCallback() {
-      @Override
-      public void onPlay() {
-        handlePlay();
-      }
+        @Override
+        public void onPlay() {
+            handlePlay();
+        }
     });
 
     // Move the content player's surface layer to the background so that the ad player's surface
@@ -398,9 +396,19 @@ public class ImaPlayer {
     adUiContainer = new FrameLayout(activity);
     container.addView(adUiContainer);
     adUiContainer.setLayoutParams(Util.getLayoutParamsBasedOnParent(
-        adUiContainer,
-        ViewGroup.LayoutParams.MATCH_PARENT,
-        ViewGroup.LayoutParams.MATCH_PARENT));
+            adUiContainer,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT));
+
+    contentProgressProvider = new ContentProgressProvider() {
+      @Override
+      public VideoProgressUpdate getContentProgress() {
+        if (contentPlayer == null) {
+          return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
+        }
+          return new VideoProgressUpdate(contentPlayer.getCurrentPosition(), contentPlayer.getDuration());
+      }
+    };
 
 
     this.originalContainerLayoutParams = container.getLayoutParams();
@@ -704,7 +712,9 @@ public class ImaPlayer {
     AdDisplayContainer adDisplayContainer = ImaSdkFactory.getInstance().createAdDisplayContainer();
     adDisplayContainer.setPlayer(videoAdPlayer);
     adDisplayContainer.setAdContainer(adUiContainer);
+
     AdsRequest request = ImaSdkFactory.getInstance().createAdsRequest();
+    request.setContentProgressProvider(contentProgressProvider);
     request.setAdTagUrl(tagUrl);
 
     request.setAdDisplayContainer(adDisplayContainer);
