@@ -1,5 +1,8 @@
 # GoogleMediaFramework CHANGELOG
 
+## 0.2.1
+- Released GMF on bintray.
+
 ## 0.2.0
 - Updated ExoPlayer to v1.5.2
 - Updated IMA SDK in demo to v3.b13.3
