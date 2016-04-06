@@ -45,7 +45,7 @@ dependencies {
 }
 
 publish {
-    repoName = 'google-mediaframework-android'
+    repoName = 'google-media-framework-android'
     userOrg = 'google'
     groupId = 'com.google.android.libraries.mediaframework'
     artifactId = 'mediaframework'
