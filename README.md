@@ -28,6 +28,21 @@ git clone https://github.com/googleads/google-media-framework-android.git Google
 
 Then import the project in Android Studio (or build using Gradle via `./gradlew`).
 
+###Via jCenter
+You can also include GMF by adding the following in your project's `build.gradle` file:
+
+```gradle
+compile 'com.google.android.libraries.mediaframework:mediaframework:X.X.X'
+```
+where `X.X.X` is the version. For the latest version, see the
+project's [Releases][]. For more details, see the project on [Bintray][].
+
+[Releases]: https://github.com/googleads/google-media-framework-android/releases
+[Bintray]: https://bintray.com/google/google-media-framework-android/mediaframework/view
+
+_Note:_ this installs the underlying `mediaframework` library. For the demo package with IMA
+integration, please download or clone the source.
+
 ##Documentation
 
 Please see the [Javadoc](http://googleads.github.io/google-media-framework-android/docs/)
@@ -45,17 +60,12 @@ If you have questions about the framework, you can ask them in our [google group
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ##I want to use a newer version of Exoplayer
-The Exoplayer library is located in the `libs` folder of the `googlemediaframework` module of this project as `exoplayer.jar`. If you want to update Exoplayer, you need to replace this with a new JAR.
+Change the version of ExoPlayer included in the [googlemediaframework](https://github.com/googleads/google-media-framework-android/tree/master/googlemediaframework) package's `build.grade`:
 
-To make a new JAR, please do the following:
-
-1) Clone [Exoplayer](https://github.com/google/ExoPlayer).
-
-2) Run the `./gradlew jarRelease` command in the Exoplayer project.
-
-3) Look in the `build` folder of the `library` module, there should be a file called `library.jar`. Again, this must be done in the Exoplayer project.
-
-Then, rename `library.jar` to `exoplayer.jar` and put it into the `libs` folder of the `googlemediaframework` module of this project.
+```gradle
+compile 'com.google.android.exoplayer:exoplayer:rX.X.X'
+```
+_Note:_ you may have to modify the code if any underlying ExoPlayer APIs have changed.
 
 ##Requirements
 
