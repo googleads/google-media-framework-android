@@ -20,8 +20,6 @@
  */
 package com.google.android.libraries.mediaframework.exoplayerextensions;
 
-import android.media.MediaCodec;
-
 import com.google.android.exoplayer.DefaultLoadControl;
 import com.google.android.exoplayer.LoadControl;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
