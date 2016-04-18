@@ -35,6 +35,7 @@ import com.google.ads.interactivemedia.v3.api.AdsManagerLoadedEvent;
 import com.google.ads.interactivemedia.v3.api.AdsRequest;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
 import com.google.ads.interactivemedia.v3.api.ImaSdkSettings;
+import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoAdPlayer;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.google.android.exoplayer.ExoPlayer;
@@ -341,6 +342,18 @@ public class ImaPlayer {
       return vpu;
     }
   };
+
+  private final ContentProgressProvider contentProgressProvider = new ContentProgressProvider() {
+    @Override
+    public VideoProgressUpdate getContentProgress() {
+      if (adPlayer != null || contentPlayer == null || contentPlayer.getDuration() <= 0) {
+        return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
+      }
+      return new VideoProgressUpdate(contentPlayer.getCurrentPosition(),
+          contentPlayer.getDuration());
+    }
+  };
+
 
   /**
    * @param activity The activity that will contain the video player.
@@ -706,6 +719,7 @@ public class ImaPlayer {
     adDisplayContainer.setAdContainer(adUiContainer);
     AdsRequest request = ImaSdkFactory.getInstance().createAdsRequest();
     request.setAdTagUrl(tagUrl);
+    request.setContentProgressProvider(contentProgressProvider);
 
     request.setAdDisplayContainer(adDisplayContainer);
     return request;

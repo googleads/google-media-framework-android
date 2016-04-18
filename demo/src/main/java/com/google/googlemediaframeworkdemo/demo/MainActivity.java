@@ -216,43 +216,45 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
     return new VideoListItem[] {
         new VideoListItem("No ads (DASH)",
             new Video("http://www.youtube.com/api/manifest/dash/id/bf5bb2419360daf1/source/youtub" +
-                "e?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,as&ip=0.0.0.0&ip" +
-                "bits=0&expire=19000000000&signature=255F6B3C07C753C88708C07EA31B7A1A10703C8D.2D6" +
-                "A28B21F921D0B245CDCF36F7EB54A2B5ABFC2&key=ik0",
+                "e?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,source,id,as&ip=" +
+                "0.0.0.0&ipbits=0&expire=19000000000&signature=51AF5F39AB0CEC3E5497CD9C900EBFEAEC" +
+                "CCB5C7.8506521BFC350652163895D4C26DEE124209AA9E&key=ik0",
                 Video.VideoType.DASH,
                 "bf5bb2419360daf1"),
             null),
         new VideoListItem("Skippable preroll (DASH)",
             new Video("http://www.youtube.com/api/manifest/dash/id/bf5bb2419360daf1/source/youtub" +
-                "e?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,as&ip=0.0.0.0&ip" +
-                "bits=0&expire=19000000000&signature=255F6B3C07C753C88708C07EA31B7A1A10703C8D.2D6" +
-                "A28B21F921D0B245CDCF36F7EB54A2B5ABFC2&key=ik0",
+                "e?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,source,id,as&ip=" +
+                "0.0.0.0&ipbits=0&expire=19000000000&signature=51AF5F39AB0CEC3E5497CD9C900EBFEAEC" +
+                "CCB5C7.8506521BFC350652163895D4C26DEE124209AA9E&key=ik0",
                 Video.VideoType.DASH,
                 "bf5bb2419360daf1"),
-            "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&ciu_" +
-            "szs&impl=s&gdfp_req=1&env=vp&output=xml_vast3&unviewed_position_start=1&url=[ref" +
-            "errer_url]&correlator=[timestamp]&cust_params=gmf_format%3Dskip"),
+            "https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/" +
+            "single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast" +
+            "&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct" +
+            "%3Dskippablelinear&correlator="),
         new VideoListItem("Unskippable preroll (DASH)",
             new Video("http://www.youtube.com/api/manifest/dash/id/bf5bb2419360daf1/source/youtub" +
-                "e?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,as&ip=0.0.0.0&ip" +
-                "bits=0&expire=19000000000&signature=255F6B3C07C753C88708C07EA31B7A1A10703C8D.2D6" +
-                "A28B21F921D0B245CDCF36F7EB54A2B5ABFC2&key=ik0",
+                "e?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,source,id,as&ip=" +
+                "0.0.0.0&ipbits=0&expire=19000000000&signature=51AF5F39AB0CEC3E5497CD9C900EBFEAEC" +
+                "CCB5C7.8506521BFC350652163895D4C26DEE124209AA9E&key=ik0",
                 Video.VideoType.DASH,
                 "bf5bb2419360daf1"),
-            "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fhanna_MA_grou" +
-            "p%2Fvideo_comp_app&ciu_szs=&impl=s&gdfp_req=1&env=vp&output=xml_vast3&unviewed_p" +
-            "osition_start=1&m_ast=vast&url=[referrer_url]&correlator=[timestamp]"),
-        new VideoListItem("Ad rules - 0s, 5s, 10s, 15s (DASH)",
+            "https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/" +
+            "single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast" +
+            "&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct" +
+            "%3Dlinear&correlator="),
+        new VideoListItem("Ad rules - Pre-, Mid-, and Post-rolls (DASH)",
             new Video("http://www.youtube.com/api/manifest/dash/id/bf5bb2419360daf1/source/youtub" +
-                "e?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,as&ip=0.0.0.0&ip" +
-                "bits=0&expire=19000000000&signature=255F6B3C07C753C88708C07EA31B7A1A10703C8D.2D6" +
-                "A28B21F921D0B245CDCF36F7EB54A2B5ABFC2&key=ik0",
+                "e?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,source,id,as&ip=" +
+                "0.0.0.0&ipbits=0&expire=19000000000&signature=51AF5F39AB0CEC3E5497CD9C900EBFEAEC" +
+                "CCB5C7.8506521BFC350652163895D4C26DEE124209AA9E&key=ik0",
                 Video.VideoType.DASH,
                 "bf5bb2419360daf1"),
-            "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&" +
-            "ciu_szs&impl=s&gdfp_req=1&env=vp&output=xml_vast3&unviewed_position_start=1&" +
-            "url=[referrer_url]&correlator=[timestamp]&ad_rule=1&cmsid=11924&vid=cWCkSYdF" +
-            "lU0&cust_params=gmf_format%3Dstd%2Cskip"),
+            "https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/" +
+            "ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp" +
+            "&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite" +
+            "%26sample_ar%3Dpremidpostpod&cmsid=496&vid=short_onecue&correlator="),
         new VideoListItem("No ads (mp4)",
             new Video("http://rmcdn.2mdn.net/MotifFiles/html/1248596/android_1330378998288.mp4",
                 Video.VideoType.MP4),
@@ -262,14 +264,14 @@ public class MainActivity extends Activity implements PlaybackControlLayer.Fulls
                 ",.mov.csmil/master.m3u8",
                 Video.VideoType.HLS),
             null),
-        new VideoListItem("AdRules - Apple test (HLS)",
+        new VideoListItem("Ad rules - Apple test (HLS)",
             new Video("https://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/" +
                 "bipbop_4x3_variant.m3u8 ",
                 Video.VideoType.HLS),
-            "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&" +
-            "ciu_szs&impl=s&gdfp_req=1&env=vp&output=xml_vast3&unviewed_position_start=1&" +
-            "url=[referrer_url]&correlator=[timestamp]&ad_rule=1&cmsid=11924&vid=cWCkSYdF" +
-            "lU0&cust_params=gmf_format%3Dstd%2Cskip")
+            "https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/" +
+            "ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp" +
+            "&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite" +
+            "%26sample_ar%3Dpremidpostpod&cmsid=496&vid=short_onecue&correlator="),
     };
   }
 
