@@ -41,7 +41,7 @@ android {
 }
 
 dependencies {
-    compile 'com.google.android.exoplayer:exoplayer:r1.5.6'
+    compile 'com.google.android.exoplayer:exoplayer:r1.5.7'
 }
 
 publish {
