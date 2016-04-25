@@ -183,7 +183,7 @@ public class HlsRendererBuilder implements RendererBuilder {
       if (preferWebvtt) {
         DataSource textDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
         HlsChunkSource textChunkSource = new HlsChunkSource(false /* isMaster */, textDataSource,
-                url, manifest, DefaultHlsTrackSelector.newVttInstance(), bandwidthMeter,
+                url, manifest, DefaultHlsTrackSelector.newSubtitleInstance(), bandwidthMeter,
                 timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
         HlsSampleSource textSampleSource = new HlsSampleSource(textChunkSource, loadControl,
                 TEXT_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player, ExoplayerWrapper.TYPE_TEXT);
