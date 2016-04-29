@@ -399,7 +399,6 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     this.canSeek = true;
     this.fullscreenCallback = fullscreenCallback;
     this.shouldBePlaying = false;
-    this.savedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
     actionButtons = new ArrayList<ImageButton>();
   }
 
@@ -458,6 +457,8 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
         .getLayoutParams();
 
     layerManager.getControl().addCallback(this);
+
+    savedOrientation = layerManager.getActivity().getResources().getConfiguration().orientation;
 
     textColor = DEFAULT_TEXT_COLOR;
     chromeColor = DEFAULT_CHROME_COLOR;
