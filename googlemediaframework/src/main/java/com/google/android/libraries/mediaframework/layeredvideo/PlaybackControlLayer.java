@@ -385,6 +385,11 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   private FrameLayout view;
 
+  /**
+   * Saved orientation for coming back from fullscreen.
+   */
+  private int savedOrientation;
+
   public PlaybackControlLayer(String videoTitle) {
     this(videoTitle, null);
   }
@@ -394,6 +399,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     this.canSeek = true;
     this.fullscreenCallback = fullscreenCallback;
     this.shouldBePlaying = false;
+    this.savedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
     actionButtons = new ArrayList<ImageButton>();
   }
 
@@ -519,7 +525,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
 
     if (isFullscreen) {
       fullscreenCallback.onReturnFromFullscreen();
-      activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+      activity.setRequestedOrientation(savedOrientation);
 
       // Make the status bar and navigation bar visible again.
       activity.getWindow().getDecorView().setSystemUiVisibility(0);
@@ -531,6 +537,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
       isFullscreen = false;
     } else {
       fullscreenCallback.onGoToFullscreen();
+      savedOrientation = activity.getResources().getConfiguration().orientation;
       activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
       activity.getWindow().getDecorView().setSystemUiVisibility(
