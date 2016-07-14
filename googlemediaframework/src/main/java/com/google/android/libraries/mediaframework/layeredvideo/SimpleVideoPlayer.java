@@ -181,6 +181,7 @@ public class SimpleVideoPlayer {
    * container.
    */
   public void hide() {
+    videoSurfaceLayer.hide();
     playbackControlLayer.hide();
     subtitleLayer.setVisibility(View.GONE);
   }
@@ -332,6 +333,7 @@ public class SimpleVideoPlayer {
    * the screen.
    */
   public void show() {
+    videoSurfaceLayer.show();
     playbackControlLayer.show();
     subtitleLayer.setVisibility(View.VISIBLE);
   }
