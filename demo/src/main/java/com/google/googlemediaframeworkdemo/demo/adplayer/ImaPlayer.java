@@ -406,6 +406,7 @@ public class ImaPlayer {
     // Move the content player's surface layer to the background so that the ad player's surface
     // layer can be overlaid on top of it during ad playback.
     contentPlayer.moveSurfaceToBackground();
+    contentPlayer.hide();
 
     // Create the ad adDisplayContainer UI which will be used by the IMA SDK to overlay ad controls.
     adUiContainer = new FrameLayout(activity);
