@@ -1,4 +1,4 @@
-#Contributing to Google Media Framework - Android
+# Contributing to Google Media Framework - Android
 
 Open source projects thrive because of contributions from the developer communitity. Thank you for
 considering contributing to Google Media Framework - Android!
