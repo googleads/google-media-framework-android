@@ -2,6 +2,9 @@
 
 [![Build Status](https://travis-ci.org/googleads/google-media-framework-android.svg?branch=master)](https://travis-ci.org/googleads/google-media-framework-android)
 
+# Deprecated
+On March 15, 2018, we are stopping development and support for Google Media Framework (GMF) for Android in favor of the new ExoPlayer IMA extension.
+
 ## Introduction
 The Google Media Framework (GMF) is a lightweight media player designed to make video playback and integration with the Google Interactive Media Ads (IMA) SDK on Android easier.
 
