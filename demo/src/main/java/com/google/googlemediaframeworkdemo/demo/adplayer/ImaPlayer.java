@@ -396,12 +396,6 @@ public class ImaPlayer {
         autoplay);
 
     contentPlayer.addPlaybackListener(contentPlaybackListener);
-    contentPlayer.setPlayCallback(new PlaybackControlLayer.PlayCallback() {
-      @Override
-      public void onPlay() {
-        handlePlay();
-      }
-    });
 
     // Move the content player's surface layer to the background so that the ad player's surface
     // layer can be overlaid on top of it during ad playback.
@@ -732,16 +726,5 @@ public class ImaPlayer {
    */
   private void requestAd() {
     adsLoader.requestAds(buildAdsRequest(adTagUrl.toString()));
-  }
-
-  /**
-   * handle play callback, to request IMA ads
-   */
-  private void handlePlay() {
-    if (!adsShown && adTagUrl != null) {
-      contentPlayer.pause();
-      requestAd();
-      adsShown = true;
-    }
   }
 }
