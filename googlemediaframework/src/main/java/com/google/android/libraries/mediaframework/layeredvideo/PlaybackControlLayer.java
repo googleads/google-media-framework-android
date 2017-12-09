@@ -38,6 +38,7 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.util.PlayerControl;
 import com.google.android.libraries.mediaframework.R;
 import com.google.android.libraries.mediaframework.exoplayerextensions.PlayerControlCallback;
@@ -157,7 +158,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
           pos = layer.updateProgress();
           if (!layer.isSeekbarDragging
               && layer.isVisible
-              && layer.getLayerManager().getControl().isPlaying()) {
+              && layer.isPlaying()) {
             msg = obtainMessage(SHOW_PROGRESS);
             sendMessageDelayed(msg, 1000 - (pos % 1000));
           }
@@ -609,7 +610,8 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
           .setDuration(FADE_OUT_DURATION_MS)
           .setListener(new Animator.AnimatorListener() {
             @Override
-            public void onAnimationStart(Animator animation) {}
+            public void onAnimationStart(Animator animation) {
+            }
 
             @Override
             public void onAnimationEnd(Animator animation) {
@@ -621,17 +623,19 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
               // controls are hidden.
               if (isFullscreen) {
                 getLayerManager().getActivity().getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
+                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
               }
               handler.removeMessages(SHOW_PROGRESS);
               isVisible = false;
             }
 
             @Override
-            public void onAnimationCancel(Animator animation) {}
+            public void onAnimationCancel(Animator animation) {
+            }
 
             @Override
-            public void onAnimationRepeat(Animator animation) {}
+            public void onAnimationRepeat(Animator animation) {
+            }
           });
     }
   }
@@ -694,6 +698,18 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     topChrome.setVisibility(View.VISIBLE);
     updateActionButtons();
     updateColors();
+  }
+
+  /**
+   * Returns whether the player is playing (or will play when finishing buffering or preparation)
+   */
+  public boolean isPlaying() {
+    int playbackState = getLayerManager().getExoplayerWrapper().getPlaybackState();
+
+    return getLayerManager().getControl().isPlaying() &&
+            (playbackState == ExoPlayer.STATE_READY ||
+                    playbackState == ExoPlayer.STATE_BUFFERING ||
+                    playbackState == ExoPlayer.STATE_PREPARING);
   }
 
   /**
