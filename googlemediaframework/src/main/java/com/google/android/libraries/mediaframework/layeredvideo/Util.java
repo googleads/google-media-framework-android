@@ -39,8 +39,8 @@ public class Util {
    * <p>Thus, in this method, we look at the parent view of the given view, determine its type,
    * and create the appropriate LayoutParams for that type.
    *
-   * <p>This method only supports views which are nested inside a FrameLayout, LinearLayout, or
-   * GridLayout.
+   * <p>This method only supports views which are nested inside a FrameLayout, RelativeLayout or
+   * LinearLayout.
    */
   public static ViewGroup.LayoutParams getLayoutParamsBasedOnParent(View view, int width, int height)
       throws IllegalArgumentException {
