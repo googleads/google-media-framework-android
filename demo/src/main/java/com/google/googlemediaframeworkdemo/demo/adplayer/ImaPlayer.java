@@ -261,6 +261,11 @@ public class ImaPlayer {
     @Override
     public void playAd() {
       hideContentPlayer();
+
+      // Workaround, because resumeAd is not called when AdsManager is resumed
+      if (adPlayer != null) {
+        adPlayer.play();
+      }
     }
 
     @Override
@@ -284,7 +289,7 @@ public class ImaPlayer {
 
     @Override
     public void resumeAd() {
-      if(adPlayer != null) {
+      if (adPlayer != null) {
         adPlayer.play();
       }
     }
@@ -491,14 +496,23 @@ public class ImaPlayer {
    * Pause video playback.
    */
   public void pause() {
-    if (adPlayer != null) {
-      adPlayer.pause();
+    if (adsManager != null) {
+      adsManager.pause();
     }
     contentPlayer.pause();
   }
 
   /**
-   * Resume video playback.
+   * Resume ad playback.
+   */
+  public void resume() {
+    if (adsManager != null) {
+      adsManager.resume();
+    }
+  }
+
+  /**
+   * Start video playback.
    */
   public void play() {
     if (adTagUrl != null) {
